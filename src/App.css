@@ -11,12 +11,15 @@ body {
   min-height: 100vh;
   color: #1a202c;
   line-height: 1.6;
+  overflow-x: hidden; /* Prevent horizontal scroll on body */
 }
 
 .app {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  overflow-x: hidden; /* Prevent horizontal scroll */
 }
 
 /* Enhanced Header Styles */
@@ -80,11 +83,13 @@ body {
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
+  overflow-x: hidden; /* Prevent horizontal scroll */
 }
 
 /* Dashboard Styles */
 .dashboard {
   padding: 2rem 0;
+  width: 100%;
 }
 
 .section-header {
@@ -186,6 +191,7 @@ body {
 /* Project List Styles */
 .project-list {
   padding: 2rem 0;
+  width: 100%;
 }
 
 .section-header {
@@ -256,6 +262,7 @@ body {
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 1rem;
+  gap: 1rem;
 }
 
 .project-header h3 {
@@ -263,21 +270,24 @@ body {
   font-size: 1.3rem;
   margin: 0;
   flex: 1;
+  word-break: break-word;
 }
 
 .project-actions {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
+  flex-shrink: 0;
 }
 
 .project-value {
   background: linear-gradient(135deg, #f59e0b, #d97706);
   color: white;
-  padding: 0.25rem 0.75rem;
+  padding: 0.4rem 0.8rem;
   border-radius: 20px;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .delete-btn {
@@ -288,6 +298,12 @@ body {
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
+  flex-shrink: 0;
+  min-width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .delete-btn:hover {
@@ -299,12 +315,13 @@ body {
   color: #4a5568;
   margin-bottom: 1rem;
   line-height: 1.5;
+  word-break: break-word;
 }
 
 .project-info {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.75rem;
   color: #718096;
   font-size: 0.9rem;
 }
@@ -329,14 +346,14 @@ body {
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  padding: 2rem;
+  padding: 1rem;
   backdrop-filter: blur(8px);
 }
 
 .modal {
   background: white;
   border-radius: 20px;
-  padding: 2.5rem;
+  padding: 2rem;
   max-width: 600px;
   width: 100%;
   max-height: 90vh;
@@ -348,12 +365,15 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
 }
 
 .modal-header h3 {
   color: #2d3748;
   margin: 0;
+  flex: 1;
+  word-break: break-word;
 }
 
 .close-btn {
@@ -363,6 +383,7 @@ body {
   cursor: pointer;
   color: #718096;
   transition: color 0.3s ease;
+  flex-shrink: 0;
 }
 
 .close-btn:hover {
@@ -419,6 +440,7 @@ body {
   cursor: pointer;
   font-weight: 600;
   transition: all 0.3s ease;
+  min-width: 100px;
 }
 
 .modal-actions button[type="button"] {
@@ -438,6 +460,7 @@ body {
 /* Project Detail Styles */
 .project-detail {
   padding: 2rem 0;
+  width: 100%;
 }
 
 .project-location {
@@ -453,6 +476,7 @@ body {
   padding: 0.5rem;
   margin-bottom: 2rem;
   backdrop-filter: blur(10px);
+  overflow-x: auto; /* Allow horizontal scroll for tabs if needed */
 }
 
 .tabs button {
@@ -465,6 +489,8 @@ body {
   font-weight: 600;
   color: #718096;
   transition: all 0.3s ease;
+  min-width: 120px; /* Ensure tabs have minimum width */
+  white-space: nowrap;
 }
 
 .tabs button.active {
@@ -476,37 +502,46 @@ body {
 .tab-content {
   background: rgba(255, 255, 255, 0.95);
   border-radius: 16px;
-  padding: 2rem;
+  padding: 1.5rem;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
+  width: 100%;
+  overflow-x: auto; /* Allow horizontal scroll for tab content */
 }
 
-/* Table Styles */
+/* Enhanced Table Styles for Mobile */
 .table-container {
   background: white;
   border-radius: 12px;
-  overflow: hidden;
+  overflow-x: auto; /* Enable horizontal scrolling */
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 .table-container table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 600px; /* Minimum table width to ensure proper layout */
 }
 
 .table-container th {
   background: #f7fafc;
-  padding: 1rem;
+  padding: 1rem 0.75rem;
   text-align: left;
   font-weight: 600;
   color: #2d3748;
   border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+  font-size: 0.9rem;
 }
 
 .table-container td {
-  padding: 1rem;
+  padding: 1rem 0.75rem;
   border-bottom: 1px solid #e2e8f0;
   color: #4a5568;
+  word-break: break-word;
+  min-width: 120px; /* Ensure cells have minimum width */
 }
 
 .table-container tr:hover {
@@ -516,23 +551,121 @@ body {
 .action-buttons {
   display: flex;
   gap: 0.5rem;
+  flex-wrap: nowrap;
 }
 
 .edit-btn {
   background: #3b82f6;
   color: white;
   border: none;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 0.75rem;
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.8rem;
   font-weight: 600;
   transition: all 0.3s ease;
+  white-space: nowrap;
+  min-width: 60px;
 }
 
 .edit-btn:hover {
   background: #2563eb;
   transform: translateY(-1px);
+}
+
+/* Labour and Material Management Specific Styles */
+.labour-management,
+.material-management {
+  width: 100%;
+}
+
+.labour-management .section-header,
+.material-management .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+}
+
+.labour-management .add-btn,
+.material-management .add-btn {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Project Info Styles */
+.project-info {
+  width: 100%;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.info-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.info-item label {
+  font-weight: 600;
+  color: #2d3748;
+  font-size: 0.9rem;
+}
+
+.info-item span,
+.info-item input,
+.info-item textarea {
+  padding: 0.75rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #4a5568;
+  font-size: 1rem;
+}
+
+.info-item input:focus,
+.info-item textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  background: white;
+}
+
+.info-item textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+  gap: 1rem;
+}
+
+.save-btn {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.save-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
 }
 
 /* PWA Install Prompt */
@@ -594,6 +727,7 @@ body {
   font-size: 0.8rem;
   font-weight: 600;
   transition: all 0.3s ease;
+  white-space: nowrap;
 }
 
 .pwa-cancel-btn {
@@ -629,10 +763,31 @@ body {
 
 @keyframes spin {
   0% { transform: rotate(0deg); }
-  100% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
-/* Responsive Design */
+/* Enhanced Responsive Design */
+@media (max-width: 1024px) {
+  .header-content {
+    flex-direction: column;
+    gap: 1.5rem;
+    text-align: center;
+  }
+  
+  .user-section {
+    align-self: center;
+  }
+  
+  .states-grid {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .projects-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+}
+
 @media (max-width: 768px) {
   .header-content h1 {
     font-size: 2rem;
@@ -649,24 +804,80 @@ body {
   .section-header {
     flex-direction: column;
     text-align: center;
+    gap: 1rem;
   }
   
   .states-grid,
   .projects-grid {
     grid-template-columns: 1fr;
+    gap: 1.5rem;
   }
   
   .form-row {
     grid-template-columns: 1fr;
+    gap: 0.75rem;
   }
   
   .tabs {
-    flex-direction: column;
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 0.5rem;
   }
   
+  .tabs button {
+    min-width: 100px;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .tab-content {
+    padding: 1rem;
+  }
+
+  .project-card {
+    padding: 1.5rem;
+  }
+
+  .project-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .project-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .modal {
+    padding: 1.5rem;
+    margin: 0.5rem;
+  }
+
+  .modal-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .modal-actions button {
+    width: 100%;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
   .pwa-prompt-content {
     flex-direction: column;
     text-align: center;
+    gap: 1rem;
   }
   
   .pwa-prompt-actions {
@@ -677,19 +888,108 @@ body {
   .pwa-install-btn {
     flex: 1;
   }
+
+  /* Enhanced table responsiveness for mobile */
+  .table-container {
+    border-radius: 8px;
+  }
+
+  .table-container table {
+    min-width: 500px; /* Slightly smaller minimum width for mobile */
+  }
+
+  .table-container th,
+  .table-container td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.85rem;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .edit-btn,
+  .delete-btn {
+    min-width: 50px;
+    padding: 0.4rem 0.5rem;
+    font-size: 0.75rem;
+  }
 }
 
 @media (max-width: 480px) {
-  .modal {
-    padding: 1.5rem;
-    margin: 1rem;
+  .header-content h1 {
+    font-size: 1.8rem;
   }
   
-  .project-card {
-    padding: 1.5rem;
+  .header-content p {
+    font-size: 0.9rem;
+  }
+  
+  .main-content {
+    padding: 0.75rem;
   }
   
   .state-card {
     padding: 2rem 1.5rem;
   }
+
+  .state-icon {
+    width: 70px;
+    height: 70px;
+    font-size: 1.8rem;
+  }
+
+  .project-card {
+    padding: 1.25rem;
+  }
+
+  .modal {
+    padding: 1.25rem;
+    margin: 0.25rem;
+  }
+
+  .table-container table {
+    min-width: 400px; /* Even smaller for very small screens */
+  }
+
+  .table-container th,
+  .table-container td {
+    padding: 0.5rem 0.25rem;
+    font-size: 0.8rem;
+  }
+
+  .export-btn {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    width: 100%;
+  }
+
+  .back-btn,
+  .add-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Utility classes for better spacing */
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 1.5rem; }
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mt-3 { margin-top: 1.5rem; }
+.p-1 { padding: 0.5rem; }
+.p-2 { padding: 1rem; }
+.p-3 { padding: 1.5rem; }
+
+/* Ensure text doesn't overflow */
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.text-break {
+  word-break: break-word;
 }
