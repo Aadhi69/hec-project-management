@@ -1,29 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
+import { database } from './firebase';
 
 function App() {
   const [currentView, setCurrentView] = useState('dashboard');
   const [selectedState, setSelectedState] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
   const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // Sample states data
   const states = [
     'Tamilnadu', 'Delhi', 'Uttar Pradesh'
   ];
 
-  // Load data from localStorage
+  // Load data from Firebase
   useEffect(() => {
-    const savedProjects = localStorage.getItem('hec-projects');
-    if (savedProjects) {
-      setProjects(JSON.parse(savedProjects));
-    }
+    loadProjectsFromFirebase();
   }, []);
 
-  // Save to localStorage
-  useEffect(() => {
-    localStorage.setItem('hec-projects', JSON.stringify(projects));
-  }, [projects]);
+  const loadProjectsFromFirebase = async () => {
+    try {
+      setLoading(true);
+      const projectsData = await database.getProjects();
+      setProjects(projectsData);
+    } catch (error) {
+      console.error('Error loading projects:', error);
+      // Fallback to localStorage if Firebase fails
+      const savedProjects = localStorage.getItem('hec-projects');
+      if (savedProjects) {
+        setProjects(JSON.parse(savedProjects));
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleStateSelect = (state) => {
     setSelectedState(state);
@@ -35,29 +46,96 @@ function App() {
     setCurrentView('project-detail');
   };
 
-  const addProject = (newProject) => {
+  const addProject = async (newProject) => {
     const project = {
       ...newProject,
       id: Date.now().toString(),
       labours: [],
       materials: [],
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      projectValue: parseFloat(newProject.projectValue)
     };
-    setProjects(prev => [...prev, project]);
+    
+    try {
+      await database.saveProject(project);
+      setProjects(prev => [...prev, project]);
+      
+      // Also save to localStorage as backup
+      const updatedProjects = [...projects, project];
+      localStorage.setItem('hec-projects', JSON.stringify(updatedProjects));
+    } catch (error) {
+      console.error('Error saving project:', error);
+      // Fallback to localStorage
+      setProjects(prev => [...prev, project]);
+      localStorage.setItem('hec-projects', JSON.stringify([...projects, project]));
+    }
   };
 
-  const updateProject = (updatedProject) => {
-    setProjects(prev => prev.map(p => 
-      p.id === updatedProject.id ? updatedProject : p
-    ));
+  const updateProject = async (updatedProject) => {
+    try {
+      await database.saveProject(updatedProject);
+      setProjects(prev => prev.map(p => 
+        p.id === updatedProject.id ? updatedProject : p
+      ));
+      
+      // Update localStorage as backup
+      localStorage.setItem('hec-projects', JSON.stringify(
+        projects.map(p => p.id === updatedProject.id ? updatedProject : p)
+      ));
+    } catch (error) {
+      console.error('Error updating project:', error);
+      // Fallback to localStorage
+      setProjects(prev => prev.map(p => 
+        p.id === updatedProject.id ? updatedProject : p
+      ));
+      localStorage.setItem('hec-projects', JSON.stringify(
+        projects.map(p => p.id === updatedProject.id ? updatedProject : p)
+      ));
+    }
   };
+
+  const deleteProject = async (projectId) => {
+    if (window.confirm('Are you sure you want to delete this project?')) {
+      try {
+        await database.deleteProject(projectId);
+        setProjects(prev => prev.filter(p => p.id !== projectId));
+        
+        // Update localStorage
+        localStorage.setItem('hec-projects', JSON.stringify(
+          projects.filter(p => p.id !== projectId)
+        ));
+        
+        if (selectedProject && selectedProject.id === projectId) {
+          setCurrentView('projects');
+        }
+      } catch (error) {
+        console.error('Error deleting project:', error);
+        // Fallback to localStorage
+        setProjects(prev => prev.filter(p => p.id !== projectId));
+        localStorage.setItem('hec-projects', JSON.stringify(
+          projects.filter(p => p.id !== projectId)
+        ));
+      }
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="app">
+        <div className="loading-screen">
+          <div className="loading-spinner"></div>
+          <p>Loading HEC Project Management...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="app">
       <header className="app-header">
         <div className="header-content">
           <h1>HEC Project Management</h1>
-          <p>Heavy Engineering Corporation</p>
+          <p>Heavy Engineering Corporation • Cloud Connected</p>
         </div>
       </header>
 
@@ -76,6 +154,7 @@ function App() {
             onProjectSelect={handleProjectSelect}
             onBack={() => setCurrentView('dashboard')}
             onAddProject={addProject}
+            onDeleteProject={deleteProject}
           />
         )}
 
@@ -84,14 +163,19 @@ function App() {
             project={selectedProject}
             onBack={() => setCurrentView('projects')}
             onUpdateProject={updateProject}
+            onDeleteProject={deleteProject}
           />
         )}
       </main>
+
+      <footer className="app-footer">
+        <p>🔗 Connected to Cloud Database | HEC Project Management System</p>
+      </footer>
     </div>
   );
 }
 
-// Dashboard Component
+// Dashboard Component (keep the same as before)
 function Dashboard({ states, onStateSelect }) {
   return (
     <div className="dashboard">
@@ -118,8 +202,8 @@ function Dashboard({ states, onStateSelect }) {
   );
 }
 
-// Project List Component
-function ProjectList({ state, projects, onProjectSelect, onBack, onAddProject }) {
+// Project List Component (updated with delete functionality)
+function ProjectList({ state, projects, onProjectSelect, onBack, onAddProject, onDeleteProject }) {
   const [showForm, setShowForm] = useState(false);
 
   return (
@@ -137,13 +221,25 @@ function ProjectList({ state, projects, onProjectSelect, onBack, onAddProject })
           <div 
             key={project.id}
             className="project-card"
-            onClick={() => onProjectSelect(project)}
           >
             <div className="project-header">
-              <h3>{project.projectName}</h3>
-              <span className="project-value">
-                ₹{project.projectValue?.toLocaleString('en-IN')}
-              </span>
+              <h3 onClick={() => onProjectSelect(project)} style={{cursor: 'pointer'}}>
+                {project.projectName}
+              </h3>
+              <div className="project-actions">
+                <span className="project-value">
+                  ₹{project.projectValue?.toLocaleString('en-IN')}
+                </span>
+                <button 
+                  className="delete-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteProject(project.id);
+                  }}
+                >
+                  🗑️
+                </button>
+              </div>
             </div>
             <p className="project-desc">{project.description}</p>
             <div className="project-info">
@@ -178,7 +274,7 @@ function ProjectList({ state, projects, onProjectSelect, onBack, onAddProject })
   );
 }
 
-// Project Form Component
+// Project Form Component (keep the same)
 function ProjectForm({ state, onSave, onCancel }) {
   const [formData, setFormData] = useState({
     projectName: '',
@@ -272,8 +368,8 @@ function ProjectForm({ state, onSave, onCancel }) {
   );
 }
 
-// Project Detail Component
-function ProjectDetail({ project, onBack, onUpdateProject }) {
+// Project Detail Component (keep the same)
+function ProjectDetail({ project, onBack, onUpdateProject, onDeleteProject }) {
   const [activeTab, setActiveTab] = useState('labours');
 
   return (
@@ -284,6 +380,12 @@ function ProjectDetail({ project, onBack, onUpdateProject }) {
           <h2>{project.projectName}</h2>
           <p className="project-location">{project.state}</p>
         </div>
+        <button 
+          className="delete-btn"
+          onClick={() => onDeleteProject(project.id)}
+        >
+          Delete Project
+        </button>
       </div>
 
       <div className="tabs">
@@ -331,7 +433,7 @@ function ProjectDetail({ project, onBack, onUpdateProject }) {
   );
 }
 
-// Labour Management Component
+// Labour Management Component (keep the same)
 function LabourManagement({ labours, onUpdate }) {
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -458,7 +560,7 @@ function LabourManagement({ labours, onUpdate }) {
   );
 }
 
-// Material Management Component
+// Material Management Component (keep the same)
 function MaterialManagement({ materials, onUpdate }) {
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -602,7 +704,7 @@ function MaterialManagement({ materials, onUpdate }) {
   );
 }
 
-// Project Info Component
+// Project Info Component (keep the same)
 function ProjectInfo({ project, onUpdate }) {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState(project);
