@@ -9,9 +9,9 @@ function App() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Sample states data
+  // Corrected states data
   const states = [
-    'Tamilnadu', 'Delhi', 'Uttar Pradesh'
+    'Tamil Nadu', 'Delhi', 'Uttar Pradesh'
   ];
 
   // Load data from Firebase
@@ -134,8 +134,9 @@ function App() {
     <div className="app">
       <header className="app-header">
         <div className="header-content">
-          <h1>HEC Project Management</h1>
-          <p>Heavy Engineering Corporation • Cloud Connected</p>
+          {/* Fixed company name */}
+          <h1>Hindustan Engineers and Contractors</h1>
+          <p>Cloud Connected Project Management</p>
         </div>
       </header>
 
@@ -169,13 +170,13 @@ function App() {
       </main>
 
       <footer className="app-footer">
-        <p>🔗 Connected to Cloud Database | HEC Project Management System</p>
+        <p>🔗 Connected to Cloud Database | Hindustan Engineers and Contractors</p>
       </footer>
     </div>
   );
 }
 
-// Dashboard Component (keep the same as before)
+// Dashboard Component with improved styling
 function Dashboard({ states, onStateSelect }) {
   return (
     <div className="dashboard">
@@ -209,7 +210,7 @@ function ProjectList({ state, projects, onProjectSelect, onBack, onAddProject, o
   return (
     <div className="project-list">
       <div className="section-header">
-        <button className="back-btn" onClick={onBack}>← Back</button>
+        <button className="back-btn" onClick={onBack}>← Back to States</button>
         <h2>Projects in {state}</h2>
         <button className="add-btn" onClick={() => setShowForm(true)}>
           + Add Project
@@ -256,7 +257,7 @@ function ProjectList({ state, projects, onProjectSelect, onBack, onAddProject, o
 
       {projects.length === 0 && (
         <div className="empty-state">
-          <p>No projects found. Create your first project!</p>
+          <p>No projects found in {state}. Create your first project!</p>
         </div>
       )}
 
@@ -274,7 +275,7 @@ function ProjectList({ state, projects, onProjectSelect, onBack, onAddProject, o
   );
 }
 
-// Project Form Component (keep the same)
+// Project Form Component
 function ProjectForm({ state, onSave, onCancel }) {
   const [formData, setFormData] = useState({
     projectName: '',
@@ -368,14 +369,14 @@ function ProjectForm({ state, onSave, onCancel }) {
   );
 }
 
-// Project Detail Component (keep the same)
+// Project Detail Component
 function ProjectDetail({ project, onBack, onUpdateProject, onDeleteProject }) {
   const [activeTab, setActiveTab] = useState('labours');
 
   return (
     <div className="project-detail">
       <div className="section-header">
-        <button className="back-btn" onClick={onBack}>← Back</button>
+        <button className="back-btn" onClick={onBack}>← Back to Projects</button>
         <div>
           <h2>{project.projectName}</h2>
           <p className="project-location">{project.state}</p>
@@ -433,7 +434,7 @@ function ProjectDetail({ project, onBack, onUpdateProject, onDeleteProject }) {
   );
 }
 
-// Labour Management Component (keep the same)
+// Labour Management Component
 function LabourManagement({ labours, onUpdate }) {
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -468,7 +469,7 @@ function LabourManagement({ labours, onUpdate }) {
       <div className="section-header">
         <h3>Labour Management</h3>
         <button className="add-btn" onClick={() => setShowForm(true)}>
-          + Add Labour
+          + Add Labour Entry
         </button>
       </div>
 
@@ -560,7 +561,7 @@ function LabourManagement({ labours, onUpdate }) {
   );
 }
 
-// Material Management Component (keep the same)
+// Material Management Component
 function MaterialManagement({ materials, onUpdate }) {
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -704,7 +705,7 @@ function MaterialManagement({ materials, onUpdate }) {
   );
 }
 
-// Project Info Component (keep the same)
+// Project Info Component
 function ProjectInfo({ project, onUpdate }) {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState(project);
