@@ -877,6 +877,117 @@ select:focus {
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   }
 }
+/* PWA Install Prompt Styles */
+.pwa-install-prompt {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  border: 1px solid #e2e8f0;
+  z-index: 1000;
+  max-width: 400px;
+  width: 90%;
+  animation: slideUp 0.3s ease;
+}
+
+.pwa-prompt-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pwa-prompt-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.pwa-icon {
+  font-size: 2rem;
+}
+
+.pwa-prompt-info h4 {
+  margin: 0;
+  color: #1a202c;
+  font-weight: 700;
+}
+
+.pwa-prompt-info p {
+  margin: 0.25rem 0 0 0;
+  color: #4a5568;
+  font-size: 0.9rem;
+}
+
+.pwa-prompt-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.pwa-cancel-btn {
+  background: #718096;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.pwa-install-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.pwa-cancel-btn:hover,
+.pwa-install-btn:hover {
+  transform: translateY(-1px);
+}
+
+/* PWA-specific styles for standalone mode */
+@media all and (display-mode: standalone) {
+  .app-header {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .main-content {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Enhanced mobile styles for PWA */
+@media (max-width: 768px) {
+  .pwa-install-prompt {
+    bottom: 10px;
+    width: 95%;
+  }
+}
+
+/* Offline indicator */
+.offline-indicator {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: #e53e3e;
+  color: white;
+  text-align: center;
+  padding: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  z-index: 1001;
+}
 
 @media (max-width: 768px) {
   .header-content h1 {

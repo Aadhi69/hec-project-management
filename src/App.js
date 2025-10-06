@@ -3,6 +3,7 @@ import './App.css';
 import { database } from './firebase';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import { usePWA } from './hooks/usePWA';
 
 function App() {
   const [currentView, setCurrentView] = useState('dashboard');
@@ -10,6 +11,7 @@ function App() {
   const [selectedProject, setSelectedProject] = useState(null);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { isInstallable, installApp } = usePWA();
 
   // Corrected states data
   const states = [
@@ -242,6 +244,29 @@ function App() {
           <p>Cloud Connected Project Management</p>
         </div>
       </header>
+
+      {/* PWA Install Prompt */}
+      {isInstallable && (
+        <div className="pwa-install-prompt">
+          <div className="pwa-prompt-content">
+            <div className="pwa-prompt-info">
+              <span className="pwa-icon">📱</span>
+              <div>
+                <h4>Install HEC App</h4>
+                <p>Get the full app experience on your home screen</p>
+              </div>
+            </div>
+            <div className="pwa-prompt-actions">
+              <button className="pwa-cancel-btn" onClick={() => {}}>
+                Later
+              </button>
+              <button className="pwa-install-btn" onClick={installApp}>
+                Install
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <main className="main-content">
         {currentView === 'dashboard' && (
