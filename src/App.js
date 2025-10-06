@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import { database } from './firebase';
 
@@ -14,12 +14,8 @@ function App() {
     'Tamil Nadu', 'Delhi', 'Uttar Pradesh'
   ];
 
-  // Load data from Firebase
-  useEffect(() => {
-    loadProjectsFromFirebase();
-  }, []);
-
-  const loadProjectsFromFirebase = async () => {
+  // Load data from Firebase with useCallback to prevent unnecessary re-renders
+  const loadProjectsFromFirebase = useCallback(async () => {
     try {
       setLoading(true);
       const projectsData = await database.getProjects();
@@ -34,19 +30,23 @@ function App() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const handleStateSelect = (state) => {
+  useEffect(() => {
+    loadProjectsFromFirebase();
+  }, [loadProjectsFromFirebase]);
+
+  const handleStateSelect = useCallback((state) => {
     setSelectedState(state);
     setCurrentView('projects');
-  };
+  }, []);
 
-  const handleProjectSelect = (project) => {
+  const handleProjectSelect = useCallback((project) => {
     setSelectedProject(project);
     setCurrentView('project-detail');
-  };
+  }, []);
 
-  const addProject = async (newProject) => {
+  const addProject = useCallback(async (newProject) => {
     const project = {
       ...newProject,
       id: Date.now().toString(),
@@ -69,14 +69,19 @@ function App() {
       setProjects(prev => [...prev, project]);
       localStorage.setItem('hec-projects', JSON.stringify([...projects, project]));
     }
-  };
+  }, [projects]);
 
-  const updateProject = async (updatedProject) => {
+  const updateProject = useCallback(async (updatedProject) => {
     try {
       await database.saveProject(updatedProject);
       setProjects(prev => prev.map(p => 
         p.id === updatedProject.id ? updatedProject : p
       ));
+      
+      // Update selected project if it's the one being updated
+      if (selectedProject && selectedProject.id === updatedProject.id) {
+        setSelectedProject(updatedProject);
+      }
       
       // Update localStorage as backup
       localStorage.setItem('hec-projects', JSON.stringify(
@@ -88,13 +93,16 @@ function App() {
       setProjects(prev => prev.map(p => 
         p.id === updatedProject.id ? updatedProject : p
       ));
+      if (selectedProject && selectedProject.id === updatedProject.id) {
+        setSelectedProject(updatedProject);
+      }
       localStorage.setItem('hec-projects', JSON.stringify(
         projects.map(p => p.id === updatedProject.id ? updatedProject : p)
       ));
     }
-  };
+  }, [projects, selectedProject]);
 
-  const deleteProject = async (projectId) => {
+  const deleteProject = useCallback(async (projectId) => {
     if (window.confirm('Are you sure you want to delete this project?')) {
       try {
         await database.deleteProject(projectId);
@@ -107,6 +115,7 @@ function App() {
         
         if (selectedProject && selectedProject.id === projectId) {
           setCurrentView('projects');
+          setSelectedProject(null);
         }
       } catch (error) {
         console.error('Error deleting project:', error);
@@ -115,9 +124,13 @@ function App() {
         localStorage.setItem('hec-projects', JSON.stringify(
           projects.filter(p => p.id !== projectId)
         ));
+        if (selectedProject && selectedProject.id === projectId) {
+          setCurrentView('projects');
+          setSelectedProject(null);
+        }
       }
     }
-  };
+  }, [projects, selectedProject]);
 
   if (loading) {
     return (
@@ -134,7 +147,6 @@ function App() {
     <div className="app">
       <header className="app-header">
         <div className="header-content">
-          {/* Fixed company name */}
           <h1>Hindustan Engineers and Contractors</h1>
           <p>Cloud Connected Project Management</p>
         </div>
@@ -176,8 +188,8 @@ function App() {
   );
 }
 
-// Dashboard Component with improved styling
-function Dashboard({ states, onStateSelect }) {
+// Dashboard Component - Memoized to prevent unnecessary re-renders
+const Dashboard = React.memo(({ states, onStateSelect }) => {
   return (
     <div className="dashboard">
       <div className="section-header">
@@ -187,7 +199,7 @@ function Dashboard({ states, onStateSelect }) {
       <div className="states-grid">
         {states.map((state, index) => (
           <div 
-            key={index}
+            key={state}
             className="state-card"
             onClick={() => onStateSelect(state)}
           >
@@ -201,10 +213,10 @@ function Dashboard({ states, onStateSelect }) {
       </div>
     </div>
   );
-}
+});
 
-// Project List Component (updated with delete functionality)
-function ProjectList({ state, projects, onProjectSelect, onBack, onAddProject, onDeleteProject }) {
+// Project List Component
+const ProjectList = React.memo(({ state, projects, onProjectSelect, onBack, onAddProject, onDeleteProject }) => {
   const [showForm, setShowForm] = useState(false);
 
   return (
@@ -273,10 +285,10 @@ function ProjectList({ state, projects, onProjectSelect, onBack, onAddProject, o
       )}
     </div>
   );
-}
+});
 
 // Project Form Component
-function ProjectForm({ state, onSave, onCancel }) {
+const ProjectForm = React.memo(({ state, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
     projectName: '',
     description: '',
@@ -367,10 +379,10 @@ function ProjectForm({ state, onSave, onCancel }) {
       </div>
     </div>
   );
-}
+});
 
 // Project Detail Component
-function ProjectDetail({ project, onBack, onUpdateProject, onDeleteProject }) {
+const ProjectDetail = React.memo(({ project, onBack, onUpdateProject, onDeleteProject }) => {
   const [activeTab, setActiveTab] = useState('labours');
 
   return (
@@ -432,17 +444,28 @@ function ProjectDetail({ project, onBack, onUpdateProject, onDeleteProject }) {
       </div>
     </div>
   );
-}
+});
 
-// Labour Management Component
-function LabourManagement({ labours, onUpdate }) {
+// Enhanced Labour Management Component with Edit Functionality
+const LabourManagement = React.memo(({ labours, onUpdate }) => {
   const [showForm, setShowForm] = useState(false);
+  const [editingLabour, setEditingLabour] = useState(null);
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
     numberOfLabours: '',
     role: '',
     workDescription: ''
   });
+
+  const resetForm = () => {
+    setFormData({
+      date: new Date().toISOString().split('T')[0],
+      numberOfLabours: '',
+      role: '',
+      workDescription: ''
+    });
+    setEditingLabour(null);
+  };
 
   const addLabour = () => {
     const newLabour = {
@@ -452,23 +475,49 @@ function LabourManagement({ labours, onUpdate }) {
     };
     onUpdate([...labours, newLabour]);
     setShowForm(false);
+    resetForm();
+  };
+
+  const updateLabour = () => {
+    const updatedLabours = labours.map(labour => 
+      labour.id === editingLabour.id 
+        ? { ...formData, id: labour.id, numberOfLabours: parseInt(formData.numberOfLabours) }
+        : labour
+    );
+    onUpdate(updatedLabours);
+    setShowForm(false);
+    resetForm();
+  };
+
+  const editLabour = (labour) => {
+    setEditingLabour(labour);
     setFormData({
-      date: new Date().toISOString().split('T')[0],
-      numberOfLabours: '',
-      role: '',
-      workDescription: ''
+      date: labour.date,
+      numberOfLabours: labour.numberOfLabours.toString(),
+      role: labour.role,
+      workDescription: labour.workDescription
     });
+    setShowForm(true);
   };
 
   const deleteLabour = (id) => {
     onUpdate(labours.filter(labour => labour.id !== id));
   };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (editingLabour) {
+      updateLabour();
+    } else {
+      addLabour();
+    }
+  };
+
   return (
     <div className="labour-management">
       <div className="section-header">
         <h3>Labour Management</h3>
-        <button className="add-btn" onClick={() => setShowForm(true)}>
+        <button className="add-btn" onClick={() => { resetForm(); setShowForm(true); }}>
           + Add Labour Entry
         </button>
       </div>
@@ -496,12 +545,18 @@ function LabourManagement({ labours, onUpdate }) {
                   <td>{labour.numberOfLabours}</td>
                   <td>{labour.role}</td>
                   <td>{labour.workDescription}</td>
-                  <td>
+                  <td className="action-buttons">
+                    <button 
+                      className="edit-btn"
+                      onClick={() => editLabour(labour)}
+                    >
+                      ✏️
+                    </button>
                     <button 
                       className="delete-btn"
                       onClick={() => deleteLabour(labour.id)}
                     >
-                      Delete
+                      🗑️
                     </button>
                   </td>
                 </tr>
@@ -515,55 +570,62 @@ function LabourManagement({ labours, onUpdate }) {
         <div className="modal-overlay">
           <div className="modal">
             <div className="modal-header">
-              <h3>Add Labour Entry</h3>
-              <button className="close-btn" onClick={() => setShowForm(false)}>×</button>
+              <h3>{editingLabour ? 'Edit Labour Entry' : 'Add Labour Entry'}</h3>
+              <button className="close-btn" onClick={() => { setShowForm(false); resetForm(); }}>×</button>
             </div>
-            <div className="form-group">
-              <label>Date</label>
-              <input
-                type="date"
-                value={formData.date}
-                onChange={(e) => setFormData({...formData, date: e.target.value})}
-              />
-            </div>
-            <div className="form-group">
-              <label>Number of Labours</label>
-              <input
-                type="number"
-                value={formData.numberOfLabours}
-                onChange={(e) => setFormData({...formData, numberOfLabours: e.target.value})}
-              />
-            </div>
-            <div className="form-group">
-              <label>Role</label>
-              <input
-                type="text"
-                value={formData.role}
-                onChange={(e) => setFormData({...formData, role: e.target.value})}
-              />
-            </div>
-            <div className="form-group">
-              <label>Work Description</label>
-              <textarea
-                value={formData.workDescription}
-                onChange={(e) => setFormData({...formData, workDescription: e.target.value})}
-                rows="3"
-              />
-            </div>
-            <div className="modal-actions">
-              <button type="button" onClick={() => setShowForm(false)}>Cancel</button>
-              <button type="button" onClick={addLabour}>Add Labour</button>
-            </div>
+            <form onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label>Date</label>
+                <input
+                  type="date"
+                  value={formData.date}
+                  onChange={(e) => setFormData({...formData, date: e.target.value})}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Number of Labours</label>
+                <input
+                  type="number"
+                  value={formData.numberOfLabours}
+                  onChange={(e) => setFormData({...formData, numberOfLabours: e.target.value})}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Role</label>
+                <input
+                  type="text"
+                  value={formData.role}
+                  onChange={(e) => setFormData({...formData, role: e.target.value})}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Work Description</label>
+                <textarea
+                  value={formData.workDescription}
+                  onChange={(e) => setFormData({...formData, workDescription: e.target.value})}
+                  rows="3"
+                  required
+                />
+              </div>
+              <div className="modal-actions">
+                <button type="button" onClick={() => { setShowForm(false); resetForm(); }}>Cancel</button>
+                <button type="submit">{editingLabour ? 'Update Labour' : 'Add Labour'}</button>
+              </div>
+            </form>
           </div>
         </div>
       )}
     </div>
   );
-}
+});
 
-// Material Management Component
-function MaterialManagement({ materials, onUpdate }) {
+// Enhanced Material Management Component with Edit Functionality
+const MaterialManagement = React.memo(({ materials, onUpdate }) => {
   const [showForm, setShowForm] = useState(false);
+  const [editingMaterial, setEditingMaterial] = useState(null);
   const [formData, setFormData] = useState({
     materialName: '',
     cost: '',
@@ -571,6 +633,17 @@ function MaterialManagement({ materials, onUpdate }) {
     quantity: '',
     supplier: ''
   });
+
+  const resetForm = () => {
+    setFormData({
+      materialName: '',
+      cost: '',
+      dateOfPurchase: new Date().toISOString().split('T')[0],
+      quantity: '',
+      supplier: ''
+    });
+    setEditingMaterial(null);
+  };
 
   const addMaterial = () => {
     const newMaterial = {
@@ -581,24 +654,50 @@ function MaterialManagement({ materials, onUpdate }) {
     };
     onUpdate([...materials, newMaterial]);
     setShowForm(false);
+    resetForm();
+  };
+
+  const updateMaterial = () => {
+    const updatedMaterials = materials.map(material => 
+      material.id === editingMaterial.id 
+        ? { ...formData, id: material.id, cost: parseFloat(formData.cost), quantity: parseInt(formData.quantity) }
+        : material
+    );
+    onUpdate(updatedMaterials);
+    setShowForm(false);
+    resetForm();
+  };
+
+  const editMaterial = (material) => {
+    setEditingMaterial(material);
     setFormData({
-      materialName: '',
-      cost: '',
-      dateOfPurchase: new Date().toISOString().split('T')[0],
-      quantity: '',
-      supplier: ''
+      materialName: material.materialName,
+      cost: material.cost.toString(),
+      dateOfPurchase: material.dateOfPurchase,
+      quantity: material.quantity.toString(),
+      supplier: material.supplier
     });
+    setShowForm(true);
   };
 
   const deleteMaterial = (id) => {
     onUpdate(materials.filter(material => material.id !== id));
   };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (editingMaterial) {
+      updateMaterial();
+    } else {
+      addMaterial();
+    }
+  };
+
   return (
     <div className="material-management">
       <div className="section-header">
         <h3>Material Management</h3>
-        <button className="add-btn" onClick={() => setShowForm(true)}>
+        <button className="add-btn" onClick={() => { resetForm(); setShowForm(true); }}>
           + Add Material
         </button>
       </div>
@@ -628,12 +727,18 @@ function MaterialManagement({ materials, onUpdate }) {
                   <td>{material.quantity}</td>
                   <td>{new Date(material.dateOfPurchase).toLocaleDateString()}</td>
                   <td>{material.supplier}</td>
-                  <td>
+                  <td className="action-buttons">
+                    <button 
+                      className="edit-btn"
+                      onClick={() => editMaterial(material)}
+                    >
+                      ✏️
+                    </button>
                     <button 
                       className="delete-btn"
                       onClick={() => deleteMaterial(material.id)}
                     >
-                      Delete
+                      🗑️
                     </button>
                   </td>
                 </tr>
@@ -647,66 +752,73 @@ function MaterialManagement({ materials, onUpdate }) {
         <div className="modal-overlay">
           <div className="modal">
             <div className="modal-header">
-              <h3>Add Material</h3>
-              <button className="close-btn" onClick={() => setShowForm(false)}>×</button>
+              <h3>{editingMaterial ? 'Edit Material' : 'Add Material'}</h3>
+              <button className="close-btn" onClick={() => { setShowForm(false); resetForm(); }}>×</button>
             </div>
-            <div className="form-group">
-              <label>Material Name</label>
-              <input
-                type="text"
-                value={formData.materialName}
-                onChange={(e) => setFormData({...formData, materialName: e.target.value})}
-              />
-            </div>
-            <div className="form-row">
+            <form onSubmit={handleSubmit}>
               <div className="form-group">
-                <label>Cost (₹)</label>
-                <input
-                  type="number"
-                  value={formData.cost}
-                  onChange={(e) => setFormData({...formData, cost: e.target.value})}
-                />
-              </div>
-              <div className="form-group">
-                <label>Quantity</label>
-                <input
-                  type="number"
-                  value={formData.quantity}
-                  onChange={(e) => setFormData({...formData, quantity: e.target.value})}
-                />
-              </div>
-            </div>
-            <div className="form-row">
-              <div className="form-group">
-                <label>Purchase Date</label>
-                <input
-                  type="date"
-                  value={formData.dateOfPurchase}
-                  onChange={(e) => setFormData({...formData, dateOfPurchase: e.target.value})}
-                />
-              </div>
-              <div className="form-group">
-                <label>Supplier</label>
+                <label>Material Name</label>
                 <input
                   type="text"
-                  value={formData.supplier}
-                  onChange={(e) => setFormData({...formData, supplier: e.target.value})}
+                  value={formData.materialName}
+                  onChange={(e) => setFormData({...formData, materialName: e.target.value})}
+                  required
                 />
               </div>
-            </div>
-            <div className="modal-actions">
-              <button type="button" onClick={() => setShowForm(false)}>Cancel</button>
-              <button type="button" onClick={addMaterial}>Add Material</button>
-            </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Cost (₹)</label>
+                  <input
+                    type="number"
+                    value={formData.cost}
+                    onChange={(e) => setFormData({...formData, cost: e.target.value})}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Quantity</label>
+                  <input
+                    type="number"
+                    value={formData.quantity}
+                    onChange={(e) => setFormData({...formData, quantity: e.target.value})}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Purchase Date</label>
+                  <input
+                    type="date"
+                    value={formData.dateOfPurchase}
+                    onChange={(e) => setFormData({...formData, dateOfPurchase: e.target.value})}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Supplier</label>
+                  <input
+                    type="text"
+                    value={formData.supplier}
+                    onChange={(e) => setFormData({...formData, supplier: e.target.value})}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="modal-actions">
+                <button type="button" onClick={() => { setShowForm(false); resetForm(); }}>Cancel</button>
+                <button type="submit">{editingMaterial ? 'Update Material' : 'Add Material'}</button>
+              </div>
+            </form>
           </div>
         </div>
       )}
     </div>
   );
-}
+});
 
 // Project Info Component
-function ProjectInfo({ project, onUpdate }) {
+const ProjectInfo = React.memo(({ project, onUpdate }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState(project);
 
@@ -804,6 +916,6 @@ function ProjectInfo({ project, onUpdate }) {
       )}
     </div>
   );
-}
+});
 
 export default App;
