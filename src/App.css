@@ -23,7 +23,7 @@ body {
 /* Enhanced Header Styles */
 .app-header {
   background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-  color: rgb(0, 0, 0);
+  color: white;
   padding: 2.5rem 0;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   position: relative;
@@ -90,14 +90,14 @@ body {
   align-items: center;
   justify-content: center;
   height: 60vh;
-  color: rgb(0, 0, 0);
+  color: white;
 }
 
 .loading-spinner {
   width: 60px;
   height: 60px;
   border: 4px solid rgba(255, 255, 255, 0.3);
-  border-top: 4px solid rgb(0, 0, 0);
+  border-top: 4px solid white;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 1.5rem;
@@ -119,7 +119,7 @@ body {
 
 .section-header h2 {
   font-size: 2.5rem;
-  color: rgb(13, 3, 3);
+  color: white;
   margin-bottom: 0.8rem;
   font-weight: 600;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
@@ -127,7 +127,7 @@ body {
 
 .section-header p {
   font-size: 1.2rem;
-  color: rgba(40, 11, 11, 0.363);
+  color: rgba(255, 255, 255, 0.95);
   font-weight: 400;
 }
 
@@ -307,7 +307,7 @@ body {
 .project-card:hover {
   transform: translateY(-8px);
   box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
-  background: rgb(8, 5, 5);
+  background: white;
 }
 
 .project-header {
@@ -335,7 +335,7 @@ body {
 
 .project-value {
   background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-  color: rgb(23, 11, 11);
+  color: white;
   padding: 0.5rem 1rem;
   border-radius: 25px;
   font-size: 0.85rem;
@@ -452,7 +452,7 @@ body {
   align-items: center;
   margin-bottom: 2rem;
   padding-bottom: 1.5rem;
-  border-bottom: 2px solid #0a0d0f;
+  border-bottom: 2px solid #f1f3f4;
 }
 
 .modal-header h3 {
@@ -983,4 +983,4 @@ select:focus {
     grid-template-columns: 1fr;
     gap: 0.5rem;
   }
-}
+  }
