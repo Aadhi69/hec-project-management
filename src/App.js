@@ -133,6 +133,7 @@ function App() {
       }
     }
   }, [projects, selectedProject]);
+<<<<<<< HEAD
 
   // Export to Excel function
   const exportToExcel = async () => {
@@ -222,6 +223,8 @@ function App() {
       alert('Error exporting data to Excel. Please try again.');
     }
   };
+=======
+>>>>>>> b4808d679c5030cc049794c0e6888f586dd9adf2
 
   if (loading) {
     return (
@@ -272,12 +275,24 @@ function App() {
           />
         )}
       </main>
+<<<<<<< HEAD
+=======
+
+      <footer className="app-footer">
+        <p>🔗 Connected to Cloud Database | Hindustan Engineers and Contractors</p>
+      </footer>
+>>>>>>> b4808d679c5030cc049794c0e6888f586dd9adf2
     </div>
   );
 }
 
+<<<<<<< HEAD
 // Dashboard Component with export button
 const Dashboard = React.memo(({ states, onStateSelect, onExportToExcel }) => {
+=======
+// Dashboard Component - Memoized to prevent unnecessary re-renders
+const Dashboard = React.memo(({ states, onStateSelect }) => {
+>>>>>>> b4808d679c5030cc049794c0e6888f586dd9adf2
   return (
     <div className="dashboard">
       <div className="section-header">
@@ -557,12 +572,49 @@ const LabourManagement = React.memo(({ labours, onUpdate }) => {
   });
 
   const resetForm = () => {
+<<<<<<< HEAD
+=======
     setFormData({
       date: new Date().toISOString().split('T')[0],
       numberOfLabours: '',
       role: '',
       workDescription: ''
     });
+    setEditingLabour(null);
+  };
+
+  const addLabour = () => {
+    const newLabour = {
+      ...formData,
+      id: Date.now().toString(),
+      numberOfLabours: parseInt(formData.numberOfLabours)
+    };
+    onUpdate([...labours, newLabour]);
+    setShowForm(false);
+    resetForm();
+  };
+
+  const updateLabour = () => {
+    const updatedLabours = labours.map(labour => 
+      labour.id === editingLabour.id 
+        ? { ...formData, id: labour.id, numberOfLabours: parseInt(formData.numberOfLabours) }
+        : labour
+    );
+    onUpdate(updatedLabours);
+    setShowForm(false);
+    resetForm();
+  };
+
+  const editLabour = (labour) => {
+    setEditingLabour(labour);
+>>>>>>> b4808d679c5030cc049794c0e6888f586dd9adf2
+    setFormData({
+      date: labour.date,
+      numberOfLabours: labour.numberOfLabours.toString(),
+      role: labour.role,
+      workDescription: labour.workDescription
+    });
+<<<<<<< HEAD
     setEditingLabour(null);
   };
 
@@ -598,6 +650,8 @@ const LabourManagement = React.memo(({ labours, onUpdate }) => {
       role: labour.role,
       workDescription: labour.workDescription
     });
+=======
+>>>>>>> b4808d679c5030cc049794c0e6888f586dd9adf2
     setShowForm(true);
   };
 
@@ -609,6 +663,15 @@ const LabourManagement = React.memo(({ labours, onUpdate }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     handleSaveLabour();
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (editingLabour) {
+      updateLabour();
+    } else {
+      addLabour();
+    }
   };
 
   return (
@@ -643,6 +706,7 @@ const LabourManagement = React.memo(({ labours, onUpdate }) => {
                   <td>{labour.numberOfLabours}</td>
                   <td>{labour.role}</td>
                   <td>{labour.workDescription}</td>
+<<<<<<< HEAD
                   <td>
                     <div className="action-buttons">
                       <button 
@@ -660,6 +724,21 @@ const LabourManagement = React.memo(({ labours, onUpdate }) => {
                         Delete
                       </button>
                     </div>
+=======
+                  <td className="action-buttons">
+                    <button 
+                      className="edit-btn"
+                      onClick={() => editLabour(labour)}
+                    >
+                      ✏️
+                    </button>
+                    <button 
+                      className="delete-btn"
+                      onClick={() => deleteLabour(labour.id)}
+                    >
+                      🗑️
+                    </button>
+>>>>>>> b4808d679c5030cc049794c0e6888f586dd9adf2
                   </td>
                 </tr>
               ))}
@@ -677,7 +756,11 @@ const LabourManagement = React.memo(({ labours, onUpdate }) => {
             </div>
             <form onSubmit={handleSubmit}>
               <div className="form-group">
+<<<<<<< HEAD
                 <label>Date *</label>
+=======
+                <label>Date</label>
+>>>>>>> b4808d679c5030cc049794c0e6888f586dd9adf2
                 <input
                   type="date"
                   value={formData.date}
@@ -686,17 +769,28 @@ const LabourManagement = React.memo(({ labours, onUpdate }) => {
                 />
               </div>
               <div className="form-group">
+<<<<<<< HEAD
                 <label>Number of Labours *</label>
+=======
+                <label>Number of Labours</label>
+>>>>>>> b4808d679c5030cc049794c0e6888f586dd9adf2
                 <input
                   type="number"
                   value={formData.numberOfLabours}
                   onChange={(e) => setFormData({...formData, numberOfLabours: e.target.value})}
                   required
+<<<<<<< HEAD
                   min="1"
                 />
               </div>
               <div className="form-group">
                 <label>Role *</label>
+=======
+                />
+              </div>
+              <div className="form-group">
+                <label>Role</label>
+>>>>>>> b4808d679c5030cc049794c0e6888f586dd9adf2
                 <input
                   type="text"
                   value={formData.role}
@@ -705,7 +799,11 @@ const LabourManagement = React.memo(({ labours, onUpdate }) => {
                 />
               </div>
               <div className="form-group">
+<<<<<<< HEAD
                 <label>Work Description *</label>
+=======
+                <label>Work Description</label>
+>>>>>>> b4808d679c5030cc049794c0e6888f586dd9adf2
                 <textarea
                   value={formData.workDescription}
                   onChange={(e) => setFormData({...formData, workDescription: e.target.value})}
@@ -738,6 +836,8 @@ const MaterialManagement = React.memo(({ materials, onUpdate }) => {
   });
 
   const resetForm = () => {
+<<<<<<< HEAD
+=======
     setFormData({
       materialName: '',
       cost: '',
@@ -745,6 +845,43 @@ const MaterialManagement = React.memo(({ materials, onUpdate }) => {
       quantity: '',
       supplier: ''
     });
+    setEditingMaterial(null);
+  };
+
+  const addMaterial = () => {
+    const newMaterial = {
+      ...formData,
+      id: Date.now().toString(),
+      cost: parseFloat(formData.cost),
+      quantity: parseInt(formData.quantity)
+    };
+    onUpdate([...materials, newMaterial]);
+    setShowForm(false);
+    resetForm();
+  };
+
+  const updateMaterial = () => {
+    const updatedMaterials = materials.map(material => 
+      material.id === editingMaterial.id 
+        ? { ...formData, id: material.id, cost: parseFloat(formData.cost), quantity: parseInt(formData.quantity) }
+        : material
+    );
+    onUpdate(updatedMaterials);
+    setShowForm(false);
+    resetForm();
+  };
+
+  const editMaterial = (material) => {
+    setEditingMaterial(material);
+>>>>>>> b4808d679c5030cc049794c0e6888f586dd9adf2
+    setFormData({
+      materialName: material.materialName,
+      cost: material.cost.toString(),
+      dateOfPurchase: material.dateOfPurchase,
+      quantity: material.quantity.toString(),
+      supplier: material.supplier
+    });
+<<<<<<< HEAD
     setEditingMaterial(null);
   };
 
@@ -782,6 +919,8 @@ const MaterialManagement = React.memo(({ materials, onUpdate }) => {
       quantity: material.quantity.toString(),
       supplier: material.supplier
     });
+=======
+>>>>>>> b4808d679c5030cc049794c0e6888f586dd9adf2
     setShowForm(true);
   };
 
@@ -793,6 +932,15 @@ const MaterialManagement = React.memo(({ materials, onUpdate }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     handleSaveMaterial();
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (editingMaterial) {
+      updateMaterial();
+    } else {
+      addMaterial();
+    }
   };
 
   return (
@@ -829,6 +977,7 @@ const MaterialManagement = React.memo(({ materials, onUpdate }) => {
                   <td>{material.quantity}</td>
                   <td>{new Date(material.dateOfPurchase).toLocaleDateString()}</td>
                   <td>{material.supplier}</td>
+<<<<<<< HEAD
                   <td>
                     <div className="action-buttons">
                       <button 
@@ -846,6 +995,21 @@ const MaterialManagement = React.memo(({ materials, onUpdate }) => {
                         Delete
                       </button>
                     </div>
+=======
+                  <td className="action-buttons">
+                    <button 
+                      className="edit-btn"
+                      onClick={() => editMaterial(material)}
+                    >
+                      ✏️
+                    </button>
+                    <button 
+                      className="delete-btn"
+                      onClick={() => deleteMaterial(material.id)}
+                    >
+                      🗑️
+                    </button>
+>>>>>>> b4808d679c5030cc049794c0e6888f586dd9adf2
                   </td>
                 </tr>
               ))}
@@ -863,7 +1027,11 @@ const MaterialManagement = React.memo(({ materials, onUpdate }) => {
             </div>
             <form onSubmit={handleSubmit}>
               <div className="form-group">
+<<<<<<< HEAD
                 <label>Material Name *</label>
+=======
+                <label>Material Name</label>
+>>>>>>> b4808d679c5030cc049794c0e6888f586dd9adf2
                 <input
                   type="text"
                   value={formData.materialName}
@@ -873,30 +1041,48 @@ const MaterialManagement = React.memo(({ materials, onUpdate }) => {
               </div>
               <div className="form-row">
                 <div className="form-group">
+<<<<<<< HEAD
                   <label>Cost (₹) *</label>
+=======
+                  <label>Cost (₹)</label>
+>>>>>>> b4808d679c5030cc049794c0e6888f586dd9adf2
                   <input
                     type="number"
                     value={formData.cost}
                     onChange={(e) => setFormData({...formData, cost: e.target.value})}
                     required
+<<<<<<< HEAD
                     min="0"
                     step="0.01"
                   />
                 </div>
                 <div className="form-group">
                   <label>Quantity *</label>
+=======
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Quantity</label>
+>>>>>>> b4808d679c5030cc049794c0e6888f586dd9adf2
                   <input
                     type="number"
                     value={formData.quantity}
                     onChange={(e) => setFormData({...formData, quantity: e.target.value})}
                     required
+<<<<<<< HEAD
                     min="1"
+=======
+>>>>>>> b4808d679c5030cc049794c0e6888f586dd9adf2
                   />
                 </div>
               </div>
               <div className="form-row">
                 <div className="form-group">
+<<<<<<< HEAD
                   <label>Purchase Date *</label>
+=======
+                  <label>Purchase Date</label>
+>>>>>>> b4808d679c5030cc049794c0e6888f586dd9adf2
                   <input
                     type="date"
                     value={formData.dateOfPurchase}
@@ -905,7 +1091,11 @@ const MaterialManagement = React.memo(({ materials, onUpdate }) => {
                   />
                 </div>
                 <div className="form-group">
+<<<<<<< HEAD
                   <label>Supplier *</label>
+=======
+                  <label>Supplier</label>
+>>>>>>> b4808d679c5030cc049794c0e6888f586dd9adf2
                   <input
                     type="text"
                     value={formData.supplier}

@@ -856,6 +856,7 @@ select:focus {
     border: 1px solid #000 !important;
   }
 }
+<<<<<<< HEAD
 /* Export Section Styles */
 .export-section {
   text-align: center;
@@ -904,6 +905,9 @@ select:focus {
     font-size: 1rem;
   }
 }
+=======
+
+>>>>>>> b4808d679c5030cc049794c0e6888f586dd9adf2
 /* Responsive Design */
 @media (max-width: 1024px) {
   .states-grid {
@@ -1030,4 +1034,8 @@ select:focus {
     grid-template-columns: 1fr;
     gap: 0.5rem;
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> b4808d679c5030cc049794c0e6888f586dd9adf2
