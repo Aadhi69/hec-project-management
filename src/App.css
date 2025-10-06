@@ -341,24 +341,6 @@ body {
   box-shadow: 0 4px 12px rgba(229, 62, 62, 0.3);
 }
 
-.delete-btn {
-  background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
-  color: white;
-  border: none;
-  padding: 0.5rem 0.9rem;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(229, 62, 62, 0.3);
-}
-
-.delete-btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 6px 15px rgba(229, 62, 62, 0.4);
-}
-
 .project-desc {
   color: #2d3748;
   margin-bottom: 1.2rem;
@@ -714,7 +696,7 @@ tr:hover {
   align-items: center;
 }
 
-.edit-btn {
+.table-container .edit-btn {
   background: linear-gradient(135deg, #3182ce 0%, #2c5aa0 100%);
   color: white;
   border: none;
@@ -728,7 +710,7 @@ tr:hover {
   min-width: 60px;
 }
 
-.edit-btn:hover {
+.table-container .edit-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(49, 130, 206, 0.4);
 }
@@ -776,28 +758,6 @@ tr:hover {
   color: #1a202c;
   position: sticky;
   top: 0;
-}
-
-/* Make action buttons responsive */
-@media (max-width: 768px) {
-  .action-buttons {
-    flex-direction: column;
-    gap: 0.25rem;
-  }
-  
-  .edit-btn,
-  .delete-btn {
-    padding: 0.4rem 0.8rem;
-    font-size: 0.75rem;
-    min-width: 50px;
-  }
-}
-
-/* Enhanced Performance and Action Buttons */
-.action-buttons {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
 }
 
 /* Performance optimizations */
@@ -856,7 +816,7 @@ select:focus {
     border: 1px solid #000 !important;
   }
 }
-<<<<<<< HEAD
+
 /* Export Section Styles */
 .export-section {
   text-align: center;
@@ -905,9 +865,7 @@ select:focus {
     font-size: 1rem;
   }
 }
-=======
 
->>>>>>> b4808d679c5030cc049794c0e6888f586dd9adf2
 /* Responsive Design */
 @media (max-width: 1024px) {
   .states-grid {
@@ -979,6 +937,18 @@ select:focus {
     text-align: left;
     justify-content: flex-start;
   }
+
+  .action-buttons {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  
+  .table-container .edit-btn,
+  .delete-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+    min-width: 50px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1018,7 +988,7 @@ select:focus {
     gap: 0.3rem;
   }
   
-  .edit-btn,
+  .table-container .edit-btn,
   .delete-btn {
     min-width: 55px;
     padding: 0.5rem;
@@ -1034,8 +1004,4 @@ select:focus {
     grid-template-columns: 1fr;
     gap: 0.5rem;
   }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> b4808d679c5030cc049794c0e6888f586dd9adf2
