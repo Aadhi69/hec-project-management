@@ -10,7 +10,7 @@ body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
-  color: #2d3748;
+  color: #1a202c;
   line-height: 1.6;
 }
 
@@ -121,14 +121,14 @@ body {
   font-size: 2.5rem;
   color: white;
   margin-bottom: 0.8rem;
-  font-weight: 600;
+  font-weight: 700;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .section-header p {
   font-size: 1.2rem;
   color: rgba(255, 255, 255, 0.95);
-  font-weight: 400;
+  font-weight: 500;
 }
 
 .states-grid {
@@ -139,17 +139,16 @@ body {
 }
 
 .state-card {
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(10px);
+  background: #ffffff;
   border-radius: 20px;
   padding: 3rem 2rem;
   text-align: center;
   cursor: pointer;
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   box-shadow: 
-    0 10px 30px rgba(0, 0, 0, 0.1),
-    0 1px 8px rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+    0 10px 30px rgba(0, 0, 0, 0.15),
+    0 1px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
   position: relative;
   overflow: hidden;
 }
@@ -161,7 +160,7 @@ body {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
   transition: left 0.6s;
 }
 
@@ -172,8 +171,8 @@ body {
 .state-card:hover {
   transform: translateY(-12px) scale(1.02);
   box-shadow: 
-    0 20px 40px rgba(0, 0, 0, 0.15),
-    0 8px 25px rgba(102, 126, 234, 0.2);
+    0 20px 40px rgba(0, 0, 0, 0.2),
+    0 8px 25px rgba(102, 126, 234, 0.3);
 }
 
 .state-icon {
@@ -198,9 +197,9 @@ body {
 
 .state-card h3 {
   font-size: 1.5rem;
-  color: #2d3748;
+  color: #1a202c;
   margin-bottom: 1.2rem;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .arrow {
@@ -217,12 +216,11 @@ body {
 
 /* Enhanced Project List Styles */
 .project-list {
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(10px);
+  background: #ffffff;
   border-radius: 20px;
   padding: 2.5rem;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e2e8f0;
 }
 
 .section-header {
@@ -235,7 +233,7 @@ body {
 }
 
 .back-btn {
-  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+  background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
   color: white;
   border: none;
   padding: 0.9rem 1.8rem;
@@ -244,12 +242,12 @@ body {
   font-size: 1rem;
   font-weight: 600;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+  box-shadow: 0 4px 12px rgba(74, 85, 104, 0.3);
 }
 
 .back-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(108, 117, 125, 0.4);
+  box-shadow: 0 6px 18px rgba(74, 85, 104, 0.4);
 }
 
 .add-btn {
@@ -277,7 +275,7 @@ body {
 }
 
 .project-card {
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  background: #ffffff;
   border-radius: 16px;
   padding: 2rem;
   border-left: 6px solid #667eea;
@@ -285,7 +283,8 @@ body {
   cursor: pointer;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
 }
 
 .project-card::before {
@@ -306,8 +305,8 @@ body {
 
 .project-card:hover {
   transform: translateY(-8px);
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
-  background: white;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+  background: #ffffff;
 }
 
 .project-header {
@@ -320,11 +319,10 @@ body {
 .project-header h3 {
   color: #1a202c;
   font-size: 1.4rem;
-  font-weight: 700;
+  font-weight: 800;
   margin: 0;
   flex: 1;
   line-height: 1.4;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .project-actions {
@@ -334,17 +332,17 @@ body {
 }
 
 .project-value {
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+  background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
   color: white;
   padding: 0.5rem 1rem;
   border-radius: 25px;
   font-size: 0.85rem;
   font-weight: 700;
-  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+  box-shadow: 0 4px 12px rgba(229, 62, 62, 0.3);
 }
 
 .delete-btn {
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
   color: white;
   border: none;
   padding: 0.5rem 0.9rem;
@@ -353,20 +351,20 @@ body {
   font-size: 0.85rem;
   font-weight: 600;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+  box-shadow: 0 4px 12px rgba(229, 62, 62, 0.3);
 }
 
 .delete-btn:hover {
   transform: scale(1.05);
-  box-shadow: 0 6px 15px rgba(220, 53, 69, 0.4);
+  box-shadow: 0 6px 15px rgba(229, 62, 62, 0.4);
 }
 
 .project-desc {
-  color: #4a5568;
+  color: #2d3748;
   margin-bottom: 1.2rem;
   line-height: 1.6;
   font-size: 0.95rem;
-  font-weight: 400;
+  font-weight: 500;
 }
 
 .project-info {
@@ -379,26 +377,27 @@ body {
 
 .project-info div {
   padding: 0.5rem;
-  background: rgba(255, 255, 255, 0.8);
+  background: #f7fafc;
   border-radius: 8px;
   text-align: center;
-  font-weight: 500;
+  font-weight: 600;
+  border: 1px solid #e2e8f0;
 }
 
 .project-info strong {
-  color: #2d3748;
-  font-weight: 600;
+  color: #1a202c;
+  font-weight: 700;
 }
 
 .empty-state {
   text-align: center;
   padding: 4rem 2rem;
-  color: #718096;
+  color: #4a5568;
 }
 
 .empty-state p {
   font-size: 1.2rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 /* Enhanced Modal Styles */
@@ -408,7 +407,7 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(5px);
   display: flex;
   align-items: center;
@@ -431,8 +430,9 @@ body {
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
   animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border: 1px solid #e2e8f0;
 }
 
 @keyframes slideUp {
@@ -452,12 +452,12 @@ body {
   align-items: center;
   margin-bottom: 2rem;
   padding-bottom: 1.5rem;
-  border-bottom: 2px solid #f1f3f4;
+  border-bottom: 2px solid #e2e8f0;
 }
 
 .modal-header h3 {
-  color: #2d3748;
-  font-weight: 700;
+  color: #1a202c;
+  font-weight: 800;
   font-size: 1.4rem;
 }
 
@@ -466,7 +466,7 @@ body {
   border: none;
   font-size: 1.8rem;
   cursor: pointer;
-  color: #a0aec0;
+  color: #4a5568;
   padding: 0;
   width: 35px;
   height: 35px;
@@ -478,7 +478,7 @@ body {
 }
 
 .close-btn:hover {
-  color: #4a5568;
+  color: #1a202c;
   background: #f7fafc;
 }
 
@@ -496,8 +496,8 @@ body {
 .form-group label {
   display: block;
   margin-bottom: 0.6rem;
-  font-weight: 600;
-  color: #2d3748;
+  font-weight: 700;
+  color: #1a202c;
   font-size: 0.95rem;
 }
 
@@ -510,9 +510,9 @@ body {
   border-radius: 12px;
   font-size: 1rem;
   transition: all 0.3s ease;
-  background: #fafbfc;
+  background: #ffffff;
   font-family: 'Inter', sans-serif;
-  color: #2d3748;
+  color: #1a202c;
 }
 
 .form-group input:focus,
@@ -521,7 +521,7 @@ body {
   outline: none;
   border-color: #667eea;
   background: white;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
 }
 
 .modal-actions {
@@ -530,7 +530,7 @@ body {
   justify-content: flex-end;
   margin-top: 2.5rem;
   padding-top: 1.5rem;
-  border-top: 2px solid #f1f3f4;
+  border-top: 2px solid #e2e8f0;
 }
 
 .modal-actions button {
@@ -538,14 +538,14 @@ body {
   border: none;
   border-radius: 12px;
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 1rem;
   transition: all 0.3s ease;
   font-family: 'Inter', sans-serif;
 }
 
 .modal-actions button[type="button"] {
-  background: linear-gradient(135deg, #a0aec0 0%, #718096 100%);
+  background: linear-gradient(135deg, #718096 0%, #4a5568 100%);
   color: white;
 }
 
@@ -557,29 +557,28 @@ body {
 
 .modal-actions button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
 }
 
 /* Enhanced Project Detail Styles */
 .project-detail {
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(10px);
+  background: #ffffff;
   border-radius: 20px;
   padding: 2.5rem;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e2e8f0;
 }
 
 .project-location {
-  color: #718096;
+  color: #4a5568;
   font-size: 1.1rem;
   margin-top: 0.5rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .tabs {
   display: flex;
-  border-bottom: 2px solid #f1f3f4;
+  border-bottom: 2px solid #e2e8f0;
   margin-bottom: 2.5rem;
   gap: 0.5rem;
 }
@@ -589,8 +588,8 @@ body {
   border: none;
   padding: 1.2rem 2rem;
   cursor: pointer;
-  font-weight: 600;
-  color: #a0aec0;
+  font-weight: 700;
+  color: #718096;
   border-bottom: 3px solid transparent;
   transition: all 0.3s ease;
   font-size: 1rem;
@@ -614,8 +613,9 @@ body {
 .table-container {
   overflow-x: auto;
   border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   background: white;
+  border: 1px solid #e2e8f0;
 }
 
 table {
@@ -629,21 +629,21 @@ table {
 th, td {
   padding: 1.2rem 1rem;
   text-align: left;
-  border-bottom: 1px solid #f1f3f4;
-  color: #2d3748;
+  border-bottom: 1px solid #e2e8f0;
+  color: #1a202c;
 }
 
 th {
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  font-weight: 700;
-  color: #2d3748;
+  background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+  font-weight: 800;
+  color: #1a202c;
   font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 tr:hover {
-  background: #f8f9fa;
+  background: #f7fafc;
 }
 
 /* Enhanced Project Info Styles */
@@ -663,23 +663,23 @@ tr:hover {
 }
 
 .info-item label {
-  font-weight: 700;
-  color: #2d3748;
+  font-weight: 800;
+  color: #1a202c;
   margin-bottom: 0.8rem;
   font-size: 0.95rem;
 }
 
 .info-item span {
   padding: 1rem;
-  background: #f8f9fa;
+  background: #f7fafc;
   border-radius: 12px;
-  border: 2px solid #e9ecef;
+  border: 2px solid #e2e8f0;
   font-size: 1rem;
   min-height: 52px;
   display: flex;
   align-items: center;
-  color: #2d3748;
-  font-weight: 500;
+  color: #1a202c;
+  font-weight: 600;
 }
 
 .edit-btn, .save-btn {
@@ -689,7 +689,7 @@ tr:hover {
   padding: 1rem 2rem;
   border-radius: 12px;
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 700;
   transition: all 0.3s ease;
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
@@ -715,41 +715,41 @@ tr:hover {
 }
 
 .edit-btn {
-  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  background: linear-gradient(135deg, #3182ce 0%, #2c5aa0 100%);
   color: white;
   border: none;
   padding: 0.5rem 1rem;
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.8rem;
-  font-weight: 600;
+  font-weight: 700;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+  box-shadow: 0 2px 8px rgba(49, 130, 206, 0.3);
   min-width: 60px;
 }
 
 .edit-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+  box-shadow: 0 4px 12px rgba(49, 130, 206, 0.4);
 }
 
 .delete-btn {
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
   color: white;
   border: none;
   padding: 0.5rem 1rem;
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.8rem;
-  font-weight: 600;
+  font-weight: 700;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+  box-shadow: 0 2px 8px rgba(229, 62, 62, 0.3);
   min-width: 60px;
 }
 
 .delete-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+  box-shadow: 0 4px 12px rgba(229, 62, 62, 0.4);
 }
 
 /* Ensure tables are properly styled */
@@ -765,15 +765,15 @@ tr:hover {
 .table-container td {
   padding: 1rem;
   text-align: left;
-  border-bottom: 1px solid #e9ecef;
+  border-bottom: 1px solid #e2e8f0;
   white-space: nowrap;
-  color: #2d3748;
+  color: #1a202c;
 }
 
 .table-container th {
-  background: #f8f9fa;
-  font-weight: 700;
-  color: #2d3748;
+  background: #f7fafc;
+  font-weight: 800;
+  color: #1a202c;
   position: sticky;
   top: 0;
 }
