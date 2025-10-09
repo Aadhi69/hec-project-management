@@ -1,947 +1,601 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import './App.css';
-import { database } from './firebase';
-import * as XLSX from 'xlsx';
-import { saveAs } from 'file-saver';
-import { usePWA } from './hooks/usePWA';
 
-function App() {
+// Mock data for states and projects
+const mockStates = [
+  { id: 1, name: 'Maharashtra', projectCount: 5 },
+  { id: 2, name: 'Gujarat', projectCount: 3 },
+  { id: 3, name: 'Karnataka', projectCount: 4 },
+  { id: 4, name: 'Tamil Nadu', projectCount: 2 }
+];
+
+const mockProjects = {
+  1: [
+    { 
+      id: 1, 
+      name: 'Mumbai Highway Project', 
+      location: 'Mumbai',
+      description: 'Construction of new highway connecting Mumbai to Pune',
+      estimatedCost: '₹5,00,00,000',
+      startDate: '2024-01-15',
+      siteEngineer: 'Rajesh Kumar',
+      labour: [
+        { id: 1, name: 'Mason', count: 15, wage: 800 },
+        { id: 2, name: 'Carpenter', count: 8, wage: 750 },
+        { id: 3, name: 'Electrician', count: 5, wage: 900 }
+      ],
+      materials: [
+        { id: 1, name: 'Cement', quantity: 500, price: 400 },
+        { id: 2, name: 'Steel', quantity: 200, price: 65000 },
+        { id: 3, name: 'Bricks', quantity: 10000, price: 8 }
+      ]
+    },
+    { 
+      id: 2, 
+      name: 'Navi Metro Station', 
+      location: 'Navi Mumbai',
+      description: 'Development of new metro station in Navi Mumbai',
+      estimatedCost: '₹2,50,00,000',
+      startDate: '2024-02-01',
+      siteEngineer: 'Priya Sharma',
+      labour: [
+        { id: 1, name: 'Mason', count: 10, wage: 800 },
+        { id: 2, name: 'Labourer', count: 25, wage: 600 }
+      ],
+      materials: [
+        { id: 1, name: 'Concrete', quantity: 300, price: 5000 },
+        { id: 2, name: 'Steel Rods', quantity: 150, price: 60000 }
+      ]
+    }
+  ],
+  2: [
+    { 
+      id: 1, 
+      name: 'Ahmedabad Bridge', 
+      location: 'Ahmedabad',
+      description: 'Construction of bridge over Sabarmati River',
+      estimatedCost: '₹3,00,00,000',
+      startDate: '2024-01-20',
+      siteEngineer: 'Amit Patel',
+      labour: [
+        { id: 1, name: 'Mason', count: 12, wage: 750 },
+        { id: 2, name: 'Carpenter', count: 6, wage: 700 }
+      ],
+      materials: [
+        { id: 1, name: 'Cement', quantity: 400, price: 400 },
+        { id: 2, name: 'Steel', quantity: 180, price: 62000 }
+      ]
+    }
+  ]
+};
+
+const App = () => {
   const [currentView, setCurrentView] = useState('dashboard');
   const [selectedState, setSelectedState] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
-  const [projects, setProjects] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const { isInstallable, installApp } = usePWA();
-
-  // Corrected states data
-  const states = [
-    'Tamil Nadu', 'Delhi', 'Uttar Pradesh'
-  ];
-
-  // Load data from Firebase with useCallback to prevent unnecessary re-renders
-  const loadProjectsFromFirebase = useCallback(async () => {
-    try {
-      setLoading(true);
-      const projectsData = await database.getProjects();
-      setProjects(projectsData);
-    } catch (error) {
-      console.error('Error loading projects:', error);
-      // Fallback to localStorage if Firebase fails
-      const savedProjects = localStorage.getItem('hec-projects');
-      if (savedProjects) {
-        setProjects(JSON.parse(savedProjects));
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadProjectsFromFirebase();
-  }, [loadProjectsFromFirebase]);
-
-  const handleStateSelect = useCallback((state) => {
-    setSelectedState(state);
-    setCurrentView('projects');
-  }, []);
-
-  const handleProjectSelect = useCallback((project) => {
-    setSelectedProject(project);
-    setCurrentView('project-detail');
-  }, []);
-
-  const addProject = useCallback(async (newProject) => {
-    const project = {
-      ...newProject,
-      id: Date.now().toString(),
-      labours: [],
-      materials: [],
-      createdAt: new Date().toISOString(),
-      projectValue: parseFloat(newProject.projectValue)
-    };
-    
-    try {
-      await database.saveProject(project);
-      setProjects(prev => [...prev, project]);
-      
-      // Also save to localStorage as backup
-      const updatedProjects = [...projects, project];
-      localStorage.setItem('hec-projects', JSON.stringify(updatedProjects));
-    } catch (error) {
-      console.error('Error saving project:', error);
-      // Fallback to localStorage
-      setProjects(prev => [...prev, project]);
-      localStorage.setItem('hec-projects', JSON.stringify([...projects, project]));
-    }
-  }, [projects]);
-
-  const updateProject = useCallback(async (updatedProject) => {
-    try {
-      await database.saveProject(updatedProject);
-      setProjects(prev => prev.map(p => 
-        p.id === updatedProject.id ? updatedProject : p
-      ));
-      
-      // Update selected project if it's the one being updated
-      if (selectedProject && selectedProject.id === updatedProject.id) {
-        setSelectedProject(updatedProject);
-      }
-      
-      // Update localStorage as backup
-      localStorage.setItem('hec-projects', JSON.stringify(
-        projects.map(p => p.id === updatedProject.id ? updatedProject : p)
-      ));
-    } catch (error) {
-      console.error('Error updating project:', error);
-      // Fallback to localStorage
-      setProjects(prev => prev.map(p => 
-        p.id === updatedProject.id ? updatedProject : p
-      ));
-      if (selectedProject && selectedProject.id === updatedProject.id) {
-        setSelectedProject(updatedProject);
-      }
-      localStorage.setItem('hec-projects', JSON.stringify(
-        projects.map(p => p.id === updatedProject.id ? updatedProject : p)
-      ));
-    }
-  }, [projects, selectedProject]);
-
-  const deleteProject = useCallback(async (projectId) => {
-    if (window.confirm('Are you sure you want to delete this project?')) {
-      try {
-        await database.deleteProject(projectId);
-        setProjects(prev => prev.filter(p => p.id !== projectId));
-        
-        // Update localStorage
-        localStorage.setItem('hec-projects', JSON.stringify(
-          projects.filter(p => p.id !== projectId)
-        ));
-        
-        if (selectedProject && selectedProject.id === projectId) {
-          setCurrentView('projects');
-          setSelectedProject(null);
-        }
-      } catch (error) {
-        console.error('Error deleting project:', error);
-        // Fallback to localStorage
-        setProjects(prev => prev.filter(p => p.id !== projectId));
-        localStorage.setItem('hec-projects', JSON.stringify(
-          projects.filter(p => p.id !== projectId)
-        ));
-        if (selectedProject && selectedProject.id === projectId) {
-          setCurrentView('projects');
-          setSelectedProject(null);
-        }
-      }
-    }
-  }, [projects, selectedProject]);
+  const [activeTab, setActiveTab] = useState('info');
+  const [showProjectModal, setShowProjectModal] = useState(false);
+  const [showLabourModal, setShowLabourModal] = useState(false);
+  const [showMaterialModal, setShowMaterialModal] = useState(false);
+  const [editingLabour, setEditingLabour] = useState(null);
+  const [editingMaterial, setEditingMaterial] = useState(null);
+  const [newProject, setNewProject] = useState({
+    name: '',
+    location: '',
+    description: '',
+    estimatedCost: '',
+    startDate: '',
+    siteEngineer: ''
+  });
+  const [labourForm, setLabourForm] = useState({ name: '', count: '', wage: '' });
+  const [materialForm, setMaterialForm] = useState({ name: '', quantity: '', price: '' });
 
   // Export to Excel function
-  const exportToExcel = async () => {
-    try {
-      // Get all projects data (use current state or fetch fresh from Firebase)
-      const allProjects = projects.length > 0 ? projects : await database.getProjects();
-      
-      if (allProjects.length === 0) {
-        alert('No data available to export.');
-        return;
+  const exportToExcel = useCallback(() => {
+    const projects = mockProjects[selectedState] || [];
+    const data = projects.map(project => ({
+      'Project Name': project.name,
+      'Location': project.location,
+      'Estimated Cost': project.estimatedCost,
+      'Start Date': project.startDate,
+      'Site Engineer': project.siteEngineer
+    }));
+    
+    // Simple CSV export
+    const headers = ['Project Name', 'Location', 'Estimated Cost', 'Start Date', 'Site Engineer'];
+    const csvContent = [
+      headers.join(','),
+      ...data.map(row => headers.map(header => row[header]).join(','))
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `projects_${selectedState}.csv`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+  }, [selectedState]);
+
+  // State selection
+  const handleStateSelect = (state) => {
+    setSelectedState(state.id);
+    setCurrentView('projects');
+  };
+
+  // Project selection
+  const handleProjectSelect = (project) => {
+    setSelectedProject(project);
+    setCurrentView('project-detail');
+  };
+
+  // Back to states
+  const handleBackToStates = () => {
+    setSelectedState(null);
+    setCurrentView('dashboard');
+  };
+
+  // Back to projects
+  const handleBackToProjects = () => {
+    setSelectedProject(null);
+    setCurrentView('projects');
+  };
+
+  // Add new project
+  const handleAddProject = () => {
+    if (!newProject.name || !newProject.location) return;
+    
+    const project = {
+      id: Date.now(),
+      ...newProject,
+      labour: [],
+      materials: []
+    };
+    
+    if (!mockProjects[selectedState]) {
+      mockProjects[selectedState] = [];
+    }
+    mockProjects[selectedState].push(project);
+    setShowProjectModal(false);
+    setNewProject({ name: '', location: '', description: '', estimatedCost: '', startDate: '', siteEngineer: '' });
+  };
+
+  // Delete project
+  const handleDeleteProject = (projectId) => {
+    if (window.confirm('Are you sure you want to delete this project?')) {
+      mockProjects[selectedState] = mockProjects[selectedState].filter(p => p.id !== projectId);
+      if (selectedProject && selectedProject.id === projectId) {
+        handleBackToProjects();
       }
-
-      // Create workbook
-      const wb = XLSX.utils.book_new();
-      
-      // Prepare projects data for Excel
-      const projectsData = allProjects.map(project => ({
-        'Project ID': project.id,
-        'Project Name': project.projectName,
-        'Description': project.description,
-        'State': project.state,
-        'Site Engineer': project.siteEngineer,
-        'Start Date': new Date(project.startDate).toLocaleDateString(),
-        'Completion Date': project.tentativeCompletion ? new Date(project.tentativeCompletion).toLocaleDateString() : 'N/A',
-        'Project Value (₹)': project.projectValue,
-        'Total Labours': project.labours?.length || 0,
-        'Total Materials': project.materials?.length || 0,
-        'Created Date': new Date(project.createdAt).toLocaleDateString()
-      }));
-
-      // Prepare labours data for Excel
-      const laboursData = allProjects.flatMap(project => 
-        (project.labours || []).map(labour => ({
-          'Project ID': project.id,
-          'Project Name': project.projectName,
-          'State': project.state,
-          'Date': new Date(labour.date).toLocaleDateString(),
-          'Number of Labours': labour.numberOfLabours,
-          'Role': labour.role,
-          'Work Description': labour.workDescription
-        }))
-      );
-
-      // Prepare materials data for Excel
-      const materialsData = allProjects.flatMap(project => 
-        (project.materials || []).map(material => ({
-          'Project ID': project.id,
-          'Project Name': project.projectName,
-          'State': project.state,
-          'Material Name': material.materialName,
-          'Cost (₹)': material.cost,
-          'Quantity': material.quantity,
-          'Purchase Date': new Date(material.dateOfPurchase).toLocaleDateString(),
-          'Supplier': material.supplier
-        }))
-      );
-
-      // Create worksheets
-      const projectsWs = XLSX.utils.json_to_sheet(projectsData);
-      const laboursWs = XLSX.utils.json_to_sheet(laboursData);
-      const materialsWs = XLSX.utils.json_to_sheet(materialsData);
-
-      // Add worksheets to workbook
-      XLSX.utils.book_append_sheet(wb, projectsWs, 'Projects');
-      if (laboursData.length > 0) {
-        XLSX.utils.book_append_sheet(wb, laboursWs, 'Labours');
-      }
-      if (materialsData.length > 0) {
-        XLSX.utils.book_append_sheet(wb, materialsWs, 'Materials');
-      }
-
-      // Generate Excel file
-      const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-      const data = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      
-      // Create filename with current month and year
-      const now = new Date();
-      const monthYear = now.toLocaleString('default', { month: 'long', year: 'numeric' });
-      const fileName = `HEC_Projects_Export_${monthYear.replace(' ', '_')}.xlsx`;
-      
-      // Save file
-      saveAs(data, fileName);
-      
-      alert(`Excel file "${fileName}" downloaded successfully!\n\nExported:\n- ${projectsData.length} projects\n- ${laboursData.length} labour entries\n- ${materialsData.length} material entries`);
-    } catch (error) {
-      console.error('Error exporting to Excel:', error);
-      alert('Error exporting data to Excel. Please try again.');
     }
   };
 
-  if (loading) {
-    return (
-      <div className="app">
-        <div className="loading-screen">
-          <div className="loading-spinner"></div>
-          <p>Loading HEC Project Management...</p>
-        </div>
-      </div>
-    );
-  }
+  // Labour management
+  const handleAddLabour = () => {
+    if (!labourForm.name || !labourForm.count || !labourForm.wage) return;
+    
+    const labour = {
+      id: editingLabour ? editingLabour.id : Date.now(),
+      ...labourForm,
+      count: parseInt(labourForm.count),
+      wage: parseInt(labourForm.wage)
+    };
+    
+    if (editingLabour) {
+      const index = selectedProject.labour.findIndex(l => l.id === editingLabour.id);
+      selectedProject.labour[index] = labour;
+    } else {
+      selectedProject.labour.push(labour);
+    }
+    
+    setShowLabourModal(false);
+    setLabourForm({ name: '', count: '', wage: '' });
+    setEditingLabour(null);
+  };
 
-  return (
-    <div className="app">
-      <header className="app-header">
-        <div className="header-content">
-          <h1>Hindustan Engineers and Contractors</h1>
-          <p>Cloud Connected Project Management</p>
-        </div>
-      </header>
+  const handleEditLabour = (labour) => {
+    setLabourForm({ name: labour.name, count: labour.count.toString(), wage: labour.wage.toString() });
+    setEditingLabour(labour);
+    setShowLabourModal(true);
+  };
 
-      {/* PWA Install Prompt */}
-      {isInstallable && (
-        <div className="pwa-install-prompt">
-          <div className="pwa-prompt-content">
-            <div className="pwa-prompt-info">
-              <span className="pwa-icon">📱</span>
-              <div>
-                <h4>Install HEC App</h4>
-                <p>Get the full app experience on your home screen</p>
-              </div>
-            </div>
-            <div className="pwa-prompt-actions">
-              <button className="pwa-cancel-btn" onClick={() => {}}>
-                Later
-              </button>
-              <button className="pwa-install-btn" onClick={installApp}>
-                Install
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+  const handleDeleteLabour = (labourId) => {
+    if (window.confirm('Are you sure you want to delete this labour entry?')) {
+      selectedProject.labour = selectedProject.labour.filter(l => l.id !== labourId);
+    }
+  };
 
-      <main className="main-content">
-        {currentView === 'dashboard' && (
-          <Dashboard 
-            states={states} 
-            onStateSelect={handleStateSelect}
-            onExportToExcel={exportToExcel}
-          />
-        )}
+  // Material management
+  const handleAddMaterial = () => {
+    if (!materialForm.name || !materialForm.quantity || !materialForm.price) return;
+    
+    const material = {
+      id: editingMaterial ? editingMaterial.id : Date.now(),
+      ...materialForm,
+      quantity: parseInt(materialForm.quantity),
+      price: parseInt(materialForm.price)
+    };
+    
+    if (editingMaterial) {
+      const index = selectedProject.materials.findIndex(m => m.id === editingMaterial.id);
+      selectedProject.materials[index] = material;
+    } else {
+      selectedProject.materials.push(material);
+    }
+    
+    setShowMaterialModal(false);
+    setMaterialForm({ name: '', quantity: '', price: '' });
+    setEditingMaterial(null);
+  };
 
-        {currentView === 'projects' && (
-          <ProjectList
-            state={selectedState}
-            projects={projects.filter(p => p.state === selectedState)}
-            onProjectSelect={handleProjectSelect}
-            onBack={() => setCurrentView('dashboard')}
-            onAddProject={addProject}
-            onDeleteProject={deleteProject}
-          />
-        )}
+  const handleEditMaterial = (material) => {
+    setMaterialForm({ name: material.name, quantity: material.quantity.toString(), price: material.price.toString() });
+    setEditingMaterial(material);
+    setShowMaterialModal(true);
+  };
 
-        {currentView === 'project-detail' && selectedProject && (
-          <ProjectDetail
-            project={selectedProject}
-            onBack={() => setCurrentView('projects')}
-            onUpdateProject={updateProject}
-            onDeleteProject={deleteProject}
-          />
-        )}
-      </main>
-    </div>
-  );
-}
+  const handleDeleteMaterial = (materialId) => {
+    if (window.confirm('Are you sure you want to delete this material?')) {
+      selectedProject.materials = selectedProject.materials.filter(m => m.id !== materialId);
+    }
+  };
 
-// Dashboard Component with export button
-const Dashboard = React.memo(({ states, onStateSelect, onExportToExcel }) => {
-  return (
+  // Calculate total cost for materials
+  const calculateMaterialTotal = (material) => {
+    return material.quantity * material.price;
+  };
+
+  // Calculate total project cost
+  const calculateProjectTotal = (project) => {
+    const labourTotal = project.labour.reduce((sum, labour) => sum + (labour.count * labour.wage), 0);
+    const materialTotal = project.materials.reduce((sum, material) => sum + (material.quantity * material.price), 0);
+    return labourTotal + materialTotal;
+  };
+
+  // Render views
+  const renderDashboard = () => (
     <div className="dashboard">
       <div className="section-header">
-        <h2>Select State</h2>
-        <p>Choose a state to view projects</p>
+        <h2>HEC Project Management</h2>
+        <p>Select a state to view projects</p>
       </div>
       
-      {/* Export Button */}
-      <div className="export-section">
-        <button className="export-btn" onClick={onExportToExcel}>
-          📊 Export Monthly Report (Excel)
-        </button>
-        <p className="export-note">
-          Download complete project data for the current month
-        </p>
-      </div>
-
       <div className="states-grid">
-        {states.map((state) => (
-          <div 
-            key={state}
-            className="state-card"
-            onClick={() => onStateSelect(state)}
-          >
-            <div className="state-icon">
-              {state.charAt(0)}
-            </div>
-            <h3>{state}</h3>
-            <span className="arrow">→</span>
+        {mockStates.map(state => (
+          <div key={state.id} className="state-card" onClick={() => handleStateSelect(state)}>
+            <div className="state-icon">{state.name.charAt(0)}</div>
+            <h3>{state.name}</h3>
+            <p>{state.projectCount} Projects</p>
+            <div className="arrow">→</div>
           </div>
         ))}
       </div>
     </div>
   );
-});
 
-// Project List Component
-const ProjectList = React.memo(({ state, projects, onProjectSelect, onBack, onAddProject, onDeleteProject }) => {
-  const [showForm, setShowForm] = useState(false);
-
-  return (
+  const renderProjects = () => (
     <div className="project-list">
       <div className="section-header">
-        <button className="back-btn" onClick={onBack}>← Back to States</button>
-        <h2>Projects in {state}</h2>
-        <button className="add-btn" onClick={() => setShowForm(true)}>
+        <button className="back-btn" onClick={handleBackToStates}>
+          ← Back to States
+        </button>
+        <h2>Projects in {mockStates.find(s => s.id === selectedState)?.name}</h2>
+        <button className="add-btn" onClick={() => setShowProjectModal(true)}>
           + Add Project
         </button>
       </div>
 
+      <div className="export-section">
+        <button className="export-btn" onClick={exportToExcel}>
+          Export to Excel
+        </button>
+        <p className="export-note">Download project data as CSV file</p>
+      </div>
+
       <div className="projects-grid">
-        {projects.map(project => (
-          <div 
-            key={project.id}
-            className="project-card"
-          >
+        {mockProjects[selectedState]?.map(project => (
+          <div key={project.id} className="project-card">
             <div className="project-header">
-              <h3 onClick={() => onProjectSelect(project)} style={{cursor: 'pointer'}}>
-                {project.projectName}
-              </h3>
+              <h3>{project.name}</h3>
               <div className="project-actions">
-                <span className="project-value">
-                  ₹{project.projectValue?.toLocaleString('en-IN')}
-                </span>
+                <span className="project-value">{project.estimatedCost}</span>
                 <button 
                   className="delete-btn"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onDeleteProject(project.id);
+                    handleDeleteProject(project.id);
                   }}
                 >
-                  🗑️
+                  ×
                 </button>
               </div>
             </div>
             <p className="project-desc">{project.description}</p>
             <div className="project-info">
-              <div>
-                <strong>Engineer:</strong> {project.siteEngineer}
-              </div>
-              <div>
-                <strong>Start:</strong> {new Date(project.startDate).toLocaleDateString()}
-              </div>
+              <div><strong>Location:</strong> {project.location}</div>
+              <div><strong>Site Engineer:</strong> {project.siteEngineer}</div>
+              <div><strong>Start Date:</strong> {new Date(project.startDate).toLocaleDateString()}</div>
+              <div><strong>Total Cost:</strong> ₹{calculateProjectTotal(project).toLocaleString()}</div>
             </div>
+            <button 
+              className="view-details-btn"
+              onClick={() => handleProjectSelect(project)}
+              style={{
+                marginTop: '1rem',
+                padding: '0.5rem 1rem',
+                background: '#667eea',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                width: '100%'
+              }}
+            >
+              View Details
+            </button>
           </div>
         ))}
       </div>
 
-      {projects.length === 0 && (
+      {(!mockProjects[selectedState] || mockProjects[selectedState].length === 0) && (
         <div className="empty-state">
-          <p>No projects found in {state}. Create your first project!</p>
+          <h3>No Projects Found</h3>
+          <p>Click "Add Project" to create a new project</p>
         </div>
-      )}
-
-      {showForm && (
-        <ProjectForm
-          state={state}
-          onSave={(data) => {
-            onAddProject(data);
-            setShowForm(false);
-          }}
-          onCancel={() => setShowForm(false)}
-        />
       )}
     </div>
   );
-});
 
-// Project Form Component
-const ProjectForm = React.memo(({ state, onSave, onCancel }) => {
-  const [formData, setFormData] = useState({
-    projectName: '',
-    description: '',
-    siteEngineer: '',
-    startDate: new Date().toISOString().split('T')[0],
-    tentativeCompletion: '',
-    projectValue: '',
-    state: state
-  });
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (formData.projectName && formData.siteEngineer && formData.projectValue) {
-      onSave(formData);
-    }
-  };
-
-  return (
-    <div className="modal-overlay">
-      <div className="modal">
-        <div className="modal-header">
-          <h3>New Project - {state}</h3>
-          <button className="close-btn" onClick={onCancel}>×</button>
-        </div>
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Project Name *</label>
-            <input
-              type="text"
-              value={formData.projectName}
-              onChange={(e) => setFormData({...formData, projectName: e.target.value})}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label>Description</label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => setFormData({...formData, description: e.target.value})}
-              rows="3"
-            />
-          </div>
-          <div className="form-row">
-            <div className="form-group">
-              <label>Site Engineer *</label>
-              <input
-                type="text"
-                value={formData.siteEngineer}
-                onChange={(e) => setFormData({...formData, siteEngineer: e.target.value})}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label>Project Value (₹) *</label>
-              <input
-                type="number"
-                value={formData.projectValue}
-                onChange={(e) => setFormData({...formData, projectValue: e.target.value})}
-                required
-              />
-            </div>
-          </div>
-          <div className="form-row">
-            <div className="form-group">
-              <label>Start Date *</label>
-              <input
-                type="date"
-                value={formData.startDate}
-                onChange={(e) => setFormData({...formData, startDate: e.target.value})}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label>Completion Date *</label>
-              <input
-                type="date"
-                value={formData.tentativeCompletion}
-                onChange={(e) => setFormData({...formData, tentativeCompletion: e.target.value})}
-                required
-              />
-            </div>
-          </div>
-          <div className="modal-actions">
-            <button type="button" onClick={onCancel}>Cancel</button>
-            <button type="submit">Create Project</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-});
-
-// Project Detail Component
-const ProjectDetail = React.memo(({ project, onBack, onUpdateProject, onDeleteProject }) => {
-  const [activeTab, setActiveTab] = useState('labours');
-
-  return (
+  const renderProjectDetail = () => (
     <div className="project-detail">
       <div className="section-header">
-        <button className="back-btn" onClick={onBack}>← Back to Projects</button>
-        <div>
-          <h2>{project.projectName}</h2>
-          <p className="project-location">{project.state}</p>
-        </div>
-        <button 
-          className="delete-btn"
-          onClick={() => onDeleteProject(project.id)}
-        >
-          Delete Project
+        <button className="back-btn" onClick={handleBackToProjects}>
+          ← Back to Projects
         </button>
+        <div>
+          <h2>{selectedProject?.name}</h2>
+          <p className="project-location">{selectedProject?.location}</p>
+        </div>
       </div>
 
-      <div className="tabs">
-        <button 
-          className={activeTab === 'labours' ? 'active' : ''}
-          onClick={() => setActiveTab('labours')}
-        >
-          Labours
-        </button>
-        <button 
-          className={activeTab === 'materials' ? 'active' : ''}
-          onClick={() => setActiveTab('materials')}
-        >
-          Materials
-        </button>
-        <button 
-          className={activeTab === 'info' ? 'active' : ''}
-          onClick={() => setActiveTab('info')}
-        >
-          Project Info
-        </button>
+      <div className="tabs-container">
+        <div className="tabs">
+          <button 
+            className={activeTab === 'info' ? 'active' : ''}
+            onClick={() => setActiveTab('info')}
+          >
+            Project Info
+          </button>
+          <button 
+            className={activeTab === 'labour' ? 'active' : ''}
+            onClick={() => setActiveTab('labour')}
+          >
+            Labour Management
+          </button>
+          <button 
+            className={activeTab === 'materials' ? 'active' : ''}
+            onClick={() => setActiveTab('materials')}
+          >
+            Material Management
+          </button>
+        </div>
       </div>
 
       <div className="tab-content">
-        {activeTab === 'labours' && (
-          <LabourManagement 
-            labours={project.labours || []}
-            onUpdate={(labours) => onUpdateProject({...project, labours})}
-          />
-        )}
-        {activeTab === 'materials' && (
-          <MaterialManagement 
-            materials={project.materials || []}
-            onUpdate={(materials) => onUpdateProject({...project, materials})}
-          />
-        )}
         {activeTab === 'info' && (
           <ProjectInfo 
-            project={project}
-            onUpdate={onUpdateProject}
+            project={selectedProject} 
+            onEdit={(updatedProject) => {
+              const index = mockProjects[selectedState].findIndex(p => p.id === selectedProject.id);
+              mockProjects[selectedState][index] = updatedProject;
+              setSelectedProject(updatedProject);
+            }}
+          />
+        )}
+
+        {activeTab === 'labour' && (
+          <LabourManagement 
+            labour={selectedProject?.labour || []}
+            onAdd={() => {
+              setLabourForm({ name: '', count: '', wage: '' });
+              setEditingLabour(null);
+              setShowLabourModal(true);
+            }}
+            onEdit={handleEditLabour}
+            onDelete={handleDeleteLabour}
+          />
+        )}
+
+        {activeTab === 'materials' && (
+          <MaterialManagement 
+            materials={selectedProject?.materials || []}
+            onAdd={() => {
+              setMaterialForm({ name: '', quantity: '', price: '' });
+              setEditingMaterial(null);
+              setShowMaterialModal(true);
+            }}
+            onEdit={handleEditMaterial}
+            onDelete={handleDeleteMaterial}
+            calculateTotal={calculateMaterialTotal}
           />
         )}
       </div>
     </div>
   );
-});
-
-// Enhanced Labour Management Component with Edit Functionality
-const LabourManagement = React.memo(({ labours, onUpdate }) => {
-  const [showForm, setShowForm] = useState(false);
-  const [editingLabour, setEditingLabour] = useState(null);
-  const [formData, setFormData] = useState({
-    date: new Date().toISOString().split('T')[0],
-    numberOfLabours: '',
-    role: '',
-    workDescription: ''
-  });
-
-  const resetForm = () => {
-    setFormData({
-      date: new Date().toISOString().split('T')[0],
-      numberOfLabours: '',
-      role: '',
-      workDescription: ''
-    });
-    setEditingLabour(null);
-  };
-
-  const handleSaveLabour = () => {
-    const labourData = {
-      ...formData,
-      id: editingLabour ? editingLabour.id : Date.now().toString(),
-      numberOfLabours: parseInt(formData.numberOfLabours)
-    };
-
-    let updatedLabours;
-    if (editingLabour) {
-      // Update existing labour
-      updatedLabours = labours.map(labour => 
-        labour.id === editingLabour.id ? labourData : labour
-      );
-    } else {
-      // Add new labour
-      updatedLabours = [...labours, labourData];
-    }
-
-    // Update parent component immediately
-    onUpdate(updatedLabours);
-    setShowForm(false);
-    resetForm();
-  };
-
-  const editLabour = (labour) => {
-    setEditingLabour(labour);
-    setFormData({
-      date: labour.date,
-      numberOfLabours: labour.numberOfLabours.toString(),
-      role: labour.role,
-      workDescription: labour.workDescription
-    });
-    setShowForm(true);
-  };
-
-  const deleteLabour = (id) => {
-    const updatedLabours = labours.filter(labour => labour.id !== id);
-    onUpdate(updatedLabours);
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    handleSaveLabour();
-  };
 
   return (
-    <div className="labour-management">
-      <div className="section-header">
-        <h3>Labour Management</h3>
-        <button className="add-btn" onClick={() => { resetForm(); setShowForm(true); }}>
-          + Add Labour Entry
-        </button>
-      </div>
-
-      {labours.length === 0 ? (
-        <div className="empty-state">
-          <p>No labour entries yet</p>
+    <div className="app">
+      <header className="app-header">
+        <div className="header-content">
+          <h1>HEC Project Management</h1>
+          <p>Comprehensive construction project tracking system</p>
         </div>
-      ) : (
-        <div className="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>No. of Labours</th>
-                <th>Role</th>
-                <th>Work Description</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {labours.map(labour => (
-                <tr key={labour.id}>
-                  <td>{new Date(labour.date).toLocaleDateString()}</td>
-                  <td>{labour.numberOfLabours}</td>
-                  <td>{labour.role}</td>
-                  <td>{labour.workDescription}</td>
-                  <td>
-                    <div className="action-buttons">
-                      <button 
-                        className="edit-btn"
-                        onClick={() => editLabour(labour)}
-                        title="Edit labour entry"
-                      >
-                        Edit
-                      </button>
-                      <button 
-                        className="delete-btn"
-                        onClick={() => deleteLabour(labour.id)}
-                        title="Delete labour entry"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      </header>
 
-      {showForm && (
+      <main className="main-content">
+        {currentView === 'dashboard' && renderDashboard()}
+        {currentView === 'projects' && renderProjects()}
+        {currentView === 'project-detail' && renderProjectDetail()}
+      </main>
+
+      {/* Project Modal */}
+      {showProjectModal && (
         <div className="modal-overlay">
           <div className="modal">
             <div className="modal-header">
-              <h3>{editingLabour ? 'Edit Labour Entry' : 'Add Labour Entry'}</h3>
-              <button className="close-btn" onClick={() => { setShowForm(false); resetForm(); }}>×</button>
+              <h3>Add New Project</h3>
+              <button className="close-btn" onClick={() => setShowProjectModal(false)}>×</button>
             </div>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={(e) => { e.preventDefault(); handleAddProject(); }}>
               <div className="form-group">
-                <label>Date *</label>
-                <input
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => setFormData({...formData, date: e.target.value})}
-                  required
+                <label>Project Name</label>
+                <input 
+                  type="text" 
+                  value={newProject.name}
+                  onChange={(e) => setNewProject({...newProject, name: e.target.value})}
+                  required 
                 />
               </div>
               <div className="form-group">
-                <label>Number of Labours *</label>
-                <input
-                  type="number"
-                  value={formData.numberOfLabours}
-                  onChange={(e) => setFormData({...formData, numberOfLabours: e.target.value})}
-                  required
-                  min="1"
+                <label>Location</label>
+                <input 
+                  type="text" 
+                  value={newProject.location}
+                  onChange={(e) => setNewProject({...newProject, location: e.target.value})}
+                  required 
                 />
               </div>
               <div className="form-group">
-                <label>Role *</label>
-                <input
-                  type="text"
-                  value={formData.role}
-                  onChange={(e) => setFormData({...formData, role: e.target.value})}
-                  required
+                <label>Estimated Cost</label>
+                <input 
+                  type="text" 
+                  value={newProject.estimatedCost}
+                  onChange={(e) => setNewProject({...newProject, estimatedCost: e.target.value})}
+                  placeholder="₹"
                 />
               </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Start Date</label>
+                  <input 
+                    type="date" 
+                    value={newProject.startDate}
+                    onChange={(e) => setNewProject({...newProject, startDate: e.target.value})}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Site Engineer</label>
+                  <input 
+                    type="text" 
+                    value={newProject.siteEngineer}
+                    onChange={(e) => setNewProject({...newProject, siteEngineer: e.target.value})}
+                  />
+                </div>
+              </div>
               <div className="form-group">
-                <label>Work Description *</label>
-                <textarea
-                  value={formData.workDescription}
-                  onChange={(e) => setFormData({...formData, workDescription: e.target.value})}
+                <label>Description</label>
+                <textarea 
+                  value={newProject.description}
+                  onChange={(e) => setNewProject({...newProject, description: e.target.value})}
                   rows="3"
-                  required
                 />
               </div>
               <div className="modal-actions">
-                <button type="button" onClick={() => { setShowForm(false); resetForm(); }}>Cancel</button>
-                <button type="submit">{editingLabour ? 'Update Labour' : 'Add Labour'}</button>
+                <button type="button" onClick={() => setShowProjectModal(false)}>Cancel</button>
+                <button type="submit">Add Project</button>
               </div>
             </form>
           </div>
         </div>
       )}
-    </div>
-  );
-});
 
-// Enhanced Material Management Component with Edit Functionality
-const MaterialManagement = React.memo(({ materials, onUpdate }) => {
-  const [showForm, setShowForm] = useState(false);
-  const [editingMaterial, setEditingMaterial] = useState(null);
-  const [formData, setFormData] = useState({
-    materialName: '',
-    cost: '',
-    dateOfPurchase: new Date().toISOString().split('T')[0],
-    quantity: '',
-    supplier: ''
-  });
-
-  const resetForm = () => {
-    setFormData({
-      materialName: '',
-      cost: '',
-      dateOfPurchase: new Date().toISOString().split('T')[0],
-      quantity: '',
-      supplier: ''
-    });
-    setEditingMaterial(null);
-  };
-
-  const handleSaveMaterial = () => {
-    const materialData = {
-      ...formData,
-      id: editingMaterial ? editingMaterial.id : Date.now().toString(),
-      cost: parseFloat(formData.cost),
-      quantity: parseInt(formData.quantity)
-    };
-
-    let updatedMaterials;
-    if (editingMaterial) {
-      // Update existing material
-      updatedMaterials = materials.map(material => 
-        material.id === editingMaterial.id ? materialData : material
-      );
-    } else {
-      // Add new material
-      updatedMaterials = [...materials, materialData];
-    }
-
-    // Update parent component immediately
-    onUpdate(updatedMaterials);
-    setShowForm(false);
-    resetForm();
-  };
-
-  const editMaterial = (material) => {
-    setEditingMaterial(material);
-    setFormData({
-      materialName: material.materialName,
-      cost: material.cost.toString(),
-      dateOfPurchase: material.dateOfPurchase,
-      quantity: material.quantity.toString(),
-      supplier: material.supplier
-    });
-    setShowForm(true);
-  };
-
-  const deleteMaterial = (id) => {
-    const updatedMaterials = materials.filter(material => material.id !== id);
-    onUpdate(updatedMaterials);
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    handleSaveMaterial();
-  };
-
-  return (
-    <div className="material-management">
-      <div className="section-header">
-        <h3>Material Management</h3>
-        <button className="add-btn" onClick={() => { resetForm(); setShowForm(true); }}>
-          + Add Material
-        </button>
-      </div>
-
-      {materials.length === 0 ? (
-        <div className="empty-state">
-          <p>No materials added yet</p>
-        </div>
-      ) : (
-        <div className="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Material Name</th>
-                <th>Cost (₹)</th>
-                <th>Quantity</th>
-                <th>Purchase Date</th>
-                <th>Supplier</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {materials.map(material => (
-                <tr key={material.id}>
-                  <td>{material.materialName}</td>
-                  <td>₹{material.cost?.toLocaleString('en-IN')}</td>
-                  <td>{material.quantity}</td>
-                  <td>{new Date(material.dateOfPurchase).toLocaleDateString()}</td>
-                  <td>{material.supplier}</td>
-                  <td>
-                    <div className="action-buttons">
-                      <button 
-                        className="edit-btn"
-                        onClick={() => editMaterial(material)}
-                        title="Edit material entry"
-                      >
-                        Edit
-                      </button>
-                      <button 
-                        className="delete-btn"
-                        onClick={() => deleteMaterial(material.id)}
-                        title="Delete material entry"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {showForm && (
+      {/* Labour Modal */}
+      {showLabourModal && (
         <div className="modal-overlay">
           <div className="modal">
             <div className="modal-header">
-              <h3>{editingMaterial ? 'Edit Material' : 'Add Material'}</h3>
-              <button className="close-btn" onClick={() => { setShowForm(false); resetForm(); }}>×</button>
+              <h3>{editingLabour ? 'Edit' : 'Add'} Labour</h3>
+              <button className="close-btn" onClick={() => setShowLabourModal(false)}>×</button>
             </div>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={(e) => { e.preventDefault(); handleAddLabour(); }}>
               <div className="form-group">
-                <label>Material Name *</label>
-                <input
-                  type="text"
-                  value={formData.materialName}
-                  onChange={(e) => setFormData({...formData, materialName: e.target.value})}
-                  required
+                <label>Labour Type</label>
+                <input 
+                  type="text" 
+                  value={labourForm.name}
+                  onChange={(e) => setLabourForm({...labourForm, name: e.target.value})}
+                  required 
                 />
               </div>
               <div className="form-row">
                 <div className="form-group">
-                  <label>Cost (₹) *</label>
-                  <input
-                    type="number"
-                    value={formData.cost}
-                    onChange={(e) => setFormData({...formData, cost: e.target.value})}
-                    required
-                    min="0"
-                    step="0.01"
+                  <label>Count</label>
+                  <input 
+                    type="number" 
+                    value={labourForm.count}
+                    onChange={(e) => setLabourForm({...labourForm, count: e.target.value})}
+                    required 
                   />
                 </div>
                 <div className="form-group">
-                  <label>Quantity *</label>
-                  <input
-                    type="number"
-                    value={formData.quantity}
-                    onChange={(e) => setFormData({...formData, quantity: e.target.value})}
-                    required
-                    min="1"
-                  />
-                </div>
-              </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Purchase Date *</label>
-                  <input
-                    type="date"
-                    value={formData.dateOfPurchase}
-                    onChange={(e) => setFormData({...formData, dateOfPurchase: e.target.value})}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Supplier *</label>
-                  <input
-                    type="text"
-                    value={formData.supplier}
-                    onChange={(e) => setFormData({...formData, supplier: e.target.value})}
-                    required
+                  <label>Daily Wage (₹)</label>
+                  <input 
+                    type="number" 
+                    value={labourForm.wage}
+                    onChange={(e) => setLabourForm({...labourForm, wage: e.target.value})}
+                    required 
                   />
                 </div>
               </div>
               <div className="modal-actions">
-                <button type="button" onClick={() => { setShowForm(false); resetForm(); }}>Cancel</button>
-                <button type="submit">{editingMaterial ? 'Update Material' : 'Add Material'}</button>
+                <button type="button" onClick={() => setShowLabourModal(false)}>Cancel</button>
+                <button type="submit">{editingLabour ? 'Update' : 'Add'} Labour</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Material Modal */}
+      {showMaterialModal && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <div className="modal-header">
+              <h3>{editingMaterial ? 'Edit' : 'Add'} Material</h3>
+              <button className="close-btn" onClick={() => setShowMaterialModal(false)}>×</button>
+            </div>
+            <form onSubmit={(e) => { e.preventDefault(); handleAddMaterial(); }}>
+              <div className="form-group">
+                <label>Material Name</label>
+                <input 
+                  type="text" 
+                  value={materialForm.name}
+                  onChange={(e) => setMaterialForm({...materialForm, name: e.target.value})}
+                  required 
+                />
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Quantity</label>
+                  <input 
+                    type="number" 
+                    value={materialForm.quantity}
+                    onChange={(e) => setMaterialForm({...materialForm, quantity: e.target.value})}
+                    required 
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Unit Price (₹)</label>
+                  <input 
+                    type="number" 
+                    value={materialForm.price}
+                    onChange={(e) => setMaterialForm({...materialForm, price: e.target.value})}
+                    required 
+                  />
+                </div>
+              </div>
+              <div className="modal-actions">
+                <button type="button" onClick={() => setShowMaterialModal(false)}>Cancel</button>
+                <button type="submit">{editingMaterial ? 'Update' : 'Add'} Material</button>
               </div>
             </form>
           </div>
@@ -949,18 +603,15 @@ const MaterialManagement = React.memo(({ materials, onUpdate }) => {
       )}
     </div>
   );
-});
+};
 
 // Project Info Component
-const ProjectInfo = React.memo(({ project, onUpdate }) => {
+const ProjectInfo = React.memo(({ project, onEdit }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState(project);
+  const [formData, setFormData] = useState({ ...project });
 
-  const saveChanges = () => {
-    onUpdate({
-      ...formData,
-      projectValue: parseFloat(formData.projectValue)
-    });
+  const handleSave = () => {
+    onEdit(formData);
     setIsEditing(false);
   };
 
@@ -970,7 +621,7 @@ const ProjectInfo = React.memo(({ project, onUpdate }) => {
         <h3>Project Information</h3>
         <button 
           className={isEditing ? 'save-btn' : 'edit-btn'}
-          onClick={isEditing ? saveChanges : () => setIsEditing(true)}
+          onClick={isEditing ? handleSave : () => setIsEditing(true)}
         >
           {isEditing ? 'Save' : 'Edit'}
         </button>
@@ -982,24 +633,37 @@ const ProjectInfo = React.memo(({ project, onUpdate }) => {
           {isEditing ? (
             <input
               type="text"
-              value={formData.projectName}
-              onChange={(e) => setFormData({...formData, projectName: e.target.value})}
+              value={formData.name}
+              onChange={(e) => setFormData({...formData, name: e.target.value})}
             />
           ) : (
-            <span>{project.projectName}</span>
+            <span>{project.name}</span>
           )}
         </div>
 
         <div className="info-item">
-          <label>Project Value</label>
+          <label>Location</label>
           {isEditing ? (
             <input
-              type="number"
-              value={formData.projectValue}
-              onChange={(e) => setFormData({...formData, projectValue: e.target.value})}
+              type="text"
+              value={formData.location}
+              onChange={(e) => setFormData({...formData, location: e.target.value})}
             />
           ) : (
-            <span>₹{project.projectValue?.toLocaleString('en-IN')}</span>
+            <span>{project.location}</span>
+          )}
+        </div>
+
+        <div className="info-item">
+          <label>Estimated Cost</label>
+          {isEditing ? (
+            <input
+              type="text"
+              value={formData.estimatedCost}
+              onChange={(e) => setFormData({...formData, estimatedCost: e.target.value})}
+            />
+          ) : (
+            <span>{project.estimatedCost}</span>
           )}
         </div>
 
@@ -1046,6 +710,126 @@ const ProjectInfo = React.memo(({ project, onUpdate }) => {
       {isEditing && (
         <div className="edit-actions">
           <button onClick={() => setIsEditing(false)}>Cancel</button>
+        </div>
+      )}
+    </div>
+  );
+});
+
+// Labour Management Component
+const LabourManagement = React.memo(({ labour, onAdd, onEdit, onDelete }) => {
+  const calculateLabourTotal = (labourItem) => {
+    return labourItem.count * labourItem.wage;
+  };
+
+  return (
+    <div className="labour-management">
+      <div className="section-header">
+        <h3>Labour Management</h3>
+        <button className="add-btn" onClick={onAdd}>+ Add Labour</button>
+      </div>
+
+      {labour.length > 0 ? (
+        <div className="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Labour Type</th>
+                <th>Count</th>
+                <th>Daily Wage (₹)</th>
+                <th>Daily Cost (₹)</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {labour.map(item => (
+                <tr key={item.id}>
+                  <td>{item.name}</td>
+                  <td>{item.count}</td>
+                  <td>₹{item.wage.toLocaleString()}</td>
+                  <td>₹{calculateLabourTotal(item).toLocaleString()}</td>
+                  <td>
+                    <div className="action-buttons">
+                      <button 
+                        className="edit-btn"
+                        onClick={() => onEdit(item)}
+                      >
+                        Edit
+                      </button>
+                      <button 
+                        className="delete-btn"
+                        onClick={() => onDelete(item.id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="empty-state">
+          <p>No labour entries found. Add some labour to get started.</p>
+        </div>
+      )}
+    </div>
+  );
+});
+
+// Material Management Component with Total Cost Column
+const MaterialManagement = React.memo(({ materials, onAdd, onEdit, onDelete, calculateTotal }) => {
+  return (
+    <div className="material-management">
+      <div className="section-header">
+        <h3>Material Management</h3>
+        <button className="add-btn" onClick={onAdd}>+ Add Material</button>
+      </div>
+
+      {materials.length > 0 ? (
+        <div className="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Material Name</th>
+                <th>Quantity</th>
+                <th>Unit Price (₹)</th>
+                <th>Total Cost (₹)</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {materials.map(item => (
+                <tr key={item.id}>
+                  <td>{item.name}</td>
+                  <td>{item.quantity.toLocaleString()}</td>
+                  <td>₹{item.price.toLocaleString()}</td>
+                  <td>₹{calculateTotal(item).toLocaleString()}</td>
+                  <td>
+                    <div className="action-buttons">
+                      <button 
+                        className="edit-btn"
+                        onClick={() => onEdit(item)}
+                      >
+                        Edit
+                      </button>
+                      <button 
+                        className="delete-btn"
+                        onClick={() => onDelete(item.id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="empty-state">
+          <p>No materials found. Add some materials to get started.</p>
         </div>
       )}
     </div>
