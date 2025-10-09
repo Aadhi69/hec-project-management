@@ -1,4 +1,4 @@
-/* App.css - Android Mobile Optimized */
+/* App.css - Android Mobile Optimized with Total Cost Column */
 * {
   margin: 0;
   padding: 0;
@@ -370,7 +370,7 @@ body {
   padding: 1rem;
 }
 
-/* Tables with Horizontal Scroll */
+/* Tables with Horizontal Scroll - UPDATED FOR NEW COLUMNS */
 .table-container {
   width: 100%;
   overflow-x: auto;
@@ -379,10 +379,11 @@ body {
   border-radius: 8px;
 }
 
+/* Increased min-width to accommodate the new Total Cost column */
 .table-container table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 600px;
+  min-width: 700px; /* Increased from 600px to 700px */
 }
 
 .table-container th {
@@ -399,6 +400,20 @@ body {
   padding: 0.75rem;
   border-bottom: 1px solid #e2e8f0;
   color: #4a5568;
+}
+
+/* Style for the new Total Cost column */
+.table-container td:nth-child(4),
+.table-container th:nth-child(4) {
+  font-weight: 600;
+  color: #059669; /* Green color for total cost */
+}
+
+/* Style for Daily Cost column in Labour Management */
+.labour-management .table-container td:nth-child(4),
+.labour-management .table-container th:nth-child(4) {
+  font-weight: 600;
+  color: #dc2626; /* Red color for daily cost */
 }
 
 .action-buttons {
@@ -475,6 +490,22 @@ body {
   color: #718096;
 }
 
+/* Labour and Material Management Headers */
+.labour-management .section-header,
+.material-management .section-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.labour-management .section-header h3,
+.material-management .section-header h3 {
+  color: #2d3748;
+  font-size: 1.3rem;
+  margin: 0;
+}
+
 /* Tablet and Desktop */
 @media (min-width: 768px) {
   .app-header {
@@ -534,6 +565,18 @@ body {
     flex-direction: row;
     justify-content: flex-end;
   }
+
+  /* Desktop table adjustments */
+  .table-container table {
+    min-width: 750px; /* Slightly larger for desktop */
+  }
+
+  .labour-management .section-header,
+  .material-management .section-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
 }
 
 /* Large Mobile */
@@ -544,6 +587,36 @@ body {
   
   .action-buttons {
     flex-wrap: wrap;
+  }
+
+  /* Slightly smaller table for medium mobile */
+  .table-container table {
+    min-width: 650px;
+  }
+}
+
+/* Small Mobile */
+@media (max-width: 479px) {
+  .table-container table {
+    min-width: 600px;
+    font-size: 0.8rem;
+  }
+
+  .table-container th,
+  .table-container td {
+    padding: 0.5rem 0.25rem;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .edit-btn,
+  .delete-btn {
+    min-width: 50px;
+    padding: 0.4rem 0.5rem;
+    font-size: 0.75rem;
   }
 }
 
@@ -558,4 +631,15 @@ body {
   button:active {
     transform: scale(0.98);
   }
+}
+
+/* Cost highlighting */
+.total-cost-highlight {
+  background-color: #f0fff4 !important;
+  border-left: 3px solid #059669;
+}
+
+.daily-cost-highlight {
+  background-color: #fef2f2 !important;
+  border-left: 3px solid #dc2626;
 }
