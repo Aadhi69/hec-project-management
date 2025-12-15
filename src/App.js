@@ -1,4 +1,4 @@
-/* App.js - Android Mobile Optimized - FINAL VERSION */
+/* App.js - UI TEST: Structural and Utility Updates */
 import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import { database } from './firebase';
@@ -14,26 +14,31 @@ function App() {
   const [loading, setLoading] = useState(true);
   const { isInstallable, installApp } = usePWA();
 
-  // Corrected states data
   const states = [
     'Tamil Nadu', 'Delhi', 'Uttar Pradesh'
   ];
 
-  // Utility to generate a unique ID for old entries that might be missing one
   const generateUniqueId = () => Date.now().toString() + Math.random().toString(36).substring(2);
 
-  // Load data from Firebase with useCallback to prevent unnecessary re-renders
   const loadProjectsFromFirebase = useCallback(async () => {
     try {
       setLoading(true);
       const projectsData = await database.getProjects();
-      setProjects(projectsData);
+      // Ensure all loaded projects have 'percentageComplete' initialized
+      const safeProjects = projectsData.map(p => ({
+          ...p,
+          percentageComplete: p.percentageComplete || 0 
+      }));
+      setProjects(safeProjects);
     } catch (error) {
       console.error('Error loading projects:', error);
-      // Fallback to localStorage if Firebase fails
       const savedProjects = localStorage.getItem('hec-projects');
       if (savedProjects) {
-        setProjects(JSON.parse(savedProjects));
+        const parsedProjects = JSON.parse(savedProjects).map(p => ({
+            ...p,
+            percentageComplete: p.percentageComplete || 0 
+        }));
+        setProjects(parsedProjects);
       }
     } finally {
       setLoading(false);
@@ -61,19 +66,18 @@ function App() {
       labours: [],
       materials: [],
       createdAt: new Date().toISOString(),
-      projectValue: parseFloat(newProject.projectValue)
+      projectValue: parseFloat(newProject.projectValue),
+      percentageComplete: 0 // Initialize new project progress
     };
     
     try {
       await database.saveProject(project);
       setProjects(prev => [...prev, project]);
       
-      // Also save to localStorage as backup
       const updatedProjects = [...projects, project];
       localStorage.setItem('hec-projects', JSON.stringify(updatedProjects));
     } catch (error) {
       console.error('Error saving project:', error);
-      // Fallback to localStorage
       setProjects(prev => [...prev, project]);
       localStorage.setItem('hec-projects', JSON.stringify([...projects, project]));
     }
@@ -86,18 +90,15 @@ function App() {
         p.id === updatedProject.id ? updatedProject : p
       ));
       
-      // Update selected project if it's the one being updated
       if (selectedProject && selectedProject.id === updatedProject.id) {
         setSelectedProject(updatedProject);
       }
       
-      // Update localStorage as backup
       localStorage.setItem('hec-projects', JSON.stringify(
         projects.map(p => p.id === updatedProject.id ? updatedProject : p)
       ));
     } catch (error) {
       console.error('Error updating project:', error);
-      // Fallback to localStorage
       setProjects(prev => prev.map(p => 
         p.id === updatedProject.id ? updatedProject : p
       ));
@@ -116,7 +117,6 @@ function App() {
         await database.deleteProject(projectId);
         setProjects(prev => prev.filter(p => p.id !== projectId));
         
-        // Update localStorage
         localStorage.setItem('hec-projects', JSON.stringify(
           projects.filter(p => p.id !== projectId)
         ));
@@ -127,7 +127,6 @@ function App() {
         }
       } catch (error) {
         console.error('Error deleting project:', error);
-        // Fallback to localStorage
         setProjects(prev => prev.filter(p => p.id !== projectId));
         localStorage.setItem('hec-projects', JSON.stringify(
           projects.filter(p => p.id !== projectId)
@@ -140,7 +139,7 @@ function App() {
     }
   }, [projects, selectedProject]);
 
-  // Export to Excel function
+  // Export to Excel function (unchanged)
   const exportToExcel = async () => {
     try {
       const allProjects = projects.length > 0 ? projects : await database.getProjects();
@@ -152,13 +151,13 @@ function App() {
 
       const wb = XLSX.utils.book_new();
       
-      // Prepare projects data for Excel
       const projectsData = allProjects.map(project => ({
         'Project ID': project.id,
         'Project Name': project.projectName,
         'Description': project.description,
         'State': project.state,
         'Site Engineer': project.siteEngineer,
+        'Progress (%)': project.percentageComplete || 0, // Export Progress
         'Start Date': new Date(project.startDate).toLocaleDateString(),
         'Completion Date': project.tentativeCompletion ? new Date(project.tentativeCompletion).toLocaleDateString() : 'N/A',
         'Project Value (₹)': project.projectValue,
@@ -167,7 +166,6 @@ function App() {
         'Created Date': new Date(project.createdAt).toLocaleDateString()
       }));
 
-      // Prepare labours data for Excel (Includes Daily Salary and Total Daily Salary)
       const laboursData = allProjects.flatMap(project => 
         (project.labours || []).map(labour => ({
           'Project ID': project.id,
@@ -175,20 +173,19 @@ function App() {
           'State': project.state,
           'Date': new Date(labour.date).toLocaleDateString(),
           'Number of Labours': labour.numberOfLabours,
-          'Daily Salary (₹)': labour.dailySalary || 0, // Fallback for old data
+          'Daily Salary (₹)': labour.dailySalary || 0,
           'Total Daily Salary (₹)': (labour.dailySalary || 0) * labour.numberOfLabours,
           'Work Description': labour.workDescription
         }))
       );
 
-      // Prepare materials data for Excel (Includes Total Cost)
       const materialsData = allProjects.flatMap(project => 
         (project.materials || []).map(material => ({
           'Project ID': project.id,
           'Project Name': project.projectName,
           'State': project.state,
           'Material Name': material.materialName,
-          'Unit Cost (₹)': material.cost || 0, // Fallback for old data
+          'Unit Cost (₹)': material.cost || 0,
           'Quantity': material.quantity,
           'Total Cost (₹)': (material.cost || 0) * material.quantity,
           'Purchase Date': new Date(material.dateOfPurchase).toLocaleDateString(),
@@ -196,12 +193,10 @@ function App() {
         }))
       );
 
-      // Create worksheets
       const projectsWs = XLSX.utils.json_to_sheet(projectsData);
       const laboursWs = XLSX.utils.json_to_sheet(laboursData);
       const materialsWs = XLSX.utils.json_to_sheet(materialsData);
 
-      // Add worksheets to workbook
       XLSX.utils.book_append_sheet(wb, projectsWs, 'Projects');
       if (laboursData.length > 0) {
         XLSX.utils.book_append_sheet(wb, laboursWs, 'Labours');
@@ -210,16 +205,13 @@ function App() {
         XLSX.utils.book_append_sheet(wb, materialsWs, 'Materials');
       }
 
-      // Generate Excel file
       const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
       const data = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       
-      // Create filename with current month and year
       const now = new Date();
       const monthYear = now.toLocaleString('default', { month: 'long', year: 'numeric' });
       const fileName = `HEC_Projects_Export_${monthYear.replace(' ', '_')}.xlsx`;
       
-      // Save file
       saveAs(data, fileName);
       
       alert(`Excel file "${fileName}" downloaded successfully!\n\nExported:\n- ${projectsData.length} projects\n- ${laboursData.length} labour entries\n- ${materialsData.length} material entries`);
@@ -245,11 +237,10 @@ function App() {
       <header className="app-header">
         <div className="header-content">
           <h1>Hindustan Engineers and Contractors</h1>
-          <p>Project Management System</p>
+          <p>Cloud Connected Project Management</p>
         </div>
       </header>
 
-      {/* PWA Install Prompt */}
       {isInstallable && (
         <div className="pwa-install-prompt">
           <div className="pwa-prompt-content">
@@ -305,7 +296,86 @@ function App() {
   );
 }
 
-// Dashboard Component with export button
+// =================================================================================
+// New Project Summary Component for Project Detail View
+// =================================================================================
+
+const ProjectSummary = React.memo(({ project }) => {
+    // 1. Calculate Total Costs
+    const totalLabourCost = (project.labours || []).reduce((sum, labour) => {
+        return sum + (labour.numberOfLabours || 0) * (labour.dailySalary || 0);
+    }, 0);
+
+    const totalMaterialCost = (project.materials || []).reduce((sum, material) => {
+        return sum + (material.quantity || 0) * (material.cost || 0);
+    }, 0);
+
+    const totalSpent = totalLabourCost + totalMaterialCost;
+    const projectValue = project.projectValue || 0;
+    const remainingBudget = projectValue - totalSpent;
+
+    // 2. Format Currency
+    const formatCurrency = (amount) => {
+        return `₹${amount.toLocaleString('en-IN', { minimumFractionDigits: 0 })}`;
+    };
+    
+    // 3. Progress Bar Logic
+    const progress = Math.min(100, Math.max(0, project.percentageComplete || 0));
+
+    // 4. Budget Status for Visual Cue
+    let budgetColor = 'green';
+    if (totalSpent > (projectValue * 0.8)) {
+        budgetColor = 'orange'; // Warning near 80%
+    }
+    if (totalSpent > projectValue) {
+        budgetColor = 'red'; // Over budget
+    }
+
+    return (
+        <div className="financial-summary">
+            <h3>Project Status</h3>
+
+            {/* Progress Bar */}
+            <div style={{ marginTop: '1rem', marginBottom: '1rem' }}>
+                <label style={{ fontSize: '0.9rem', color: '#4a5568', fontWeight: '600' }}>
+                    Completion: {progress}%
+                </label>
+                <div className="progress-container">
+                    <div 
+                        className="progress-bar" 
+                        style={{ width: `${progress}%` }}
+                    ></div>
+                </div>
+            </div>
+
+            {/* Financial Grid */}
+            <div className="summary-grid">
+                <div className="summary-item">
+                    <label>💰 Project Value</label>
+                    <span>{formatCurrency(projectValue)}</span>
+                </div>
+                <div className="summary-item">
+                    <label>🛠️ Total Labour Cost</label>
+                    <span>{formatCurrency(totalLabourCost)}</span>
+                </div>
+                <div className="summary-item">
+                    <label>🧱 Total Material Cost</label>
+                    <span>{formatCurrency(totalMaterialCost)}</span>
+                </div>
+                <div className="summary-item">
+                    <label style={{ color: budgetColor }}>📉 Remaining Budget</label>
+                    <span style={{ color: budgetColor }}>{formatCurrency(remainingBudget)}</span>
+                </div>
+            </div>
+        </div>
+    );
+});
+
+
+// =================================================================================
+// Existing Components with UI/UX Integration
+// =================================================================================
+
 const Dashboard = React.memo(({ states, onStateSelect, onExportToExcel }) => {
   return (
     <div className="dashboard">
@@ -314,13 +384,12 @@ const Dashboard = React.memo(({ states, onStateSelect, onExportToExcel }) => {
         <p>Choose a state to view projects</p>
       </div>
       
-      {/* Export Button */}
       <div className="export-section">
         <button className="export-btn" onClick={onExportToExcel}>
-          📊 Export Monthly Report (Excel)
+          📊 Export All Data (Excel)
         </button>
         <p className="export-note">
-          Download complete project data for the current month
+          Download complete project data for reporting.
         </p>
       </div>
 
@@ -331,10 +400,12 @@ const Dashboard = React.memo(({ states, onStateSelect, onExportToExcel }) => {
             className="state-card"
             onClick={() => onStateSelect(state)}
           >
-            <div className="state-icon">
-              {state.charAt(0)}
+            <div className="state-info">
+                <div className="state-icon">
+                    📍
+                </div>
+                <h3>{state}</h3>
             </div>
-            <h3>{state}</h3>
             <span className="arrow">→</span>
           </div>
         ))}
@@ -343,7 +414,6 @@ const Dashboard = React.memo(({ states, onStateSelect, onExportToExcel }) => {
   );
 });
 
-// Project List Component
 const ProjectList = React.memo(({ state, projects, onProjectSelect, onBack, onAddProject, onDeleteProject }) => {
   const [showForm, setShowForm] = useState(false);
 
@@ -351,7 +421,7 @@ const ProjectList = React.memo(({ state, projects, onProjectSelect, onBack, onAd
     <div className="project-list">
       <div className="section-header">
         <button className="back-btn" onClick={onBack}>← Back to States</button>
-        <h2>Projects in {state}</h2>
+        <h2>Projects in {state} ({projects.length})</h2>
         <button className="add-btn" onClick={() => setShowForm(true)}>
           + Add Project
         </button>
@@ -371,25 +441,32 @@ const ProjectList = React.memo(({ state, projects, onProjectSelect, onBack, onAd
                 <span className="project-value">
                   ₹{project.projectValue?.toLocaleString('en-IN')}
                 </span>
+              </div>
+            </div>
+            
+            <p className="project-desc">{project.description}</p>
+            
+            <div className="project-info">
+                <div>
+                    <strong>Engineer:</strong> {project.siteEngineer}
+                </div>
+                <div>
+                    <strong>Progress:</strong> {project.percentageComplete || 0}%
+                </div>
+            </div>
+            
+            {/* Action buttons moved to the bottom right for better mobile tap target */}
+            <div style={{display: 'flex', justifyContent: 'flex-end', marginTop: '1rem'}}>
                 <button 
                   className="delete-btn"
                   onClick={(e) => {
                     e.stopPropagation();
                     onDeleteProject(project.id);
                   }}
+                  style={{fontSize: '1rem', padding: '0.6rem'}}
                 >
                   🗑️
                 </button>
-              </div>
-            </div>
-            <p className="project-desc">{project.description}</p>
-            <div className="project-info">
-              <div>
-                <strong>Engineer:</strong> {project.siteEngineer}
-              </div>
-              <div>
-                <strong>Start:</strong> {new Date(project.startDate).toLocaleDateString()}
-              </div>
             </div>
           </div>
         ))}
@@ -415,7 +492,6 @@ const ProjectList = React.memo(({ state, projects, onProjectSelect, onBack, onAd
   );
 });
 
-// Project Form Component
 const ProjectForm = React.memo(({ state, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
     projectName: '',
@@ -511,9 +587,8 @@ const ProjectForm = React.memo(({ state, onSave, onCancel }) => {
   );
 });
 
-// Project Detail Component
 const ProjectDetail = React.memo(({ project, onBack, onUpdateProject, onDeleteProject }) => {
-  const [activeTab, setActiveTab] = useState('labours');
+  const [activeTab, setActiveTab] = useState('summary'); // Set summary as default tab
 
   return (
     <div className="project-detail">
@@ -527,11 +602,20 @@ const ProjectDetail = React.memo(({ project, onBack, onUpdateProject, onDeletePr
           className="delete-btn"
           onClick={() => onDeleteProject(project.id)}
         >
-          Delete Project
+          🗑️ Delete
         </button>
       </div>
+      
+      {/* Project Summary is always visible above tabs */}
+      <ProjectSummary project={project} />
 
       <div className="tabs">
+         <button 
+          className={activeTab === 'summary' ? 'active' : ''}
+          onClick={() => setActiveTab('summary')}
+        >
+          Summary
+        </button>
         <button 
           className={activeTab === 'labours' ? 'active' : ''}
           onClick={() => setActiveTab('labours')}
@@ -548,11 +632,12 @@ const ProjectDetail = React.memo(({ project, onBack, onUpdateProject, onDeletePr
           className={activeTab === 'info' ? 'active' : ''}
           onClick={() => setActiveTab('info')}
         >
-          Project Info
+          Info & Progress
         </button>
       </div>
 
       <div className="tab-content">
+        {activeTab === 'summary' && <ProjectSummary project={project} />}
         {activeTab === 'labours' && (
           <LabourManagement 
             labours={project.labours || []}
@@ -576,14 +661,11 @@ const ProjectDetail = React.memo(({ project, onBack, onUpdateProject, onDeletePr
   );
 });
 
-// Enhanced Labour Management Component with Salary instead of Role & ID Fix
 const LabourManagement = React.memo(({ labours, onUpdate }) => {
-  // FIX: Ensure all incoming labours have a unique ID, essential for delete/edit on old data
   const generateUniqueId = () => Date.now().toString() + Math.random().toString(36).substring(2);
   const initialLabours = labours.map(labour => ({
     ...labour,
     id: labour.id || generateUniqueId(),
-    // Ensure salary is a number for calculation, even if old data is missing it
     dailySalary: labour.dailySalary !== undefined ? labour.dailySalary : 0, 
   }));
   
@@ -616,12 +698,10 @@ const LabourManagement = React.memo(({ labours, onUpdate }) => {
 
     let updatedLabours;
     if (editingLabour) {
-      // Update existing labour by ID
       updatedLabours = initialLabours.map(labour => 
         labour.id === editingLabour.id ? labourData : labour
       );
     } else {
-      // Add new labour
       updatedLabours = [...initialLabours, labourData];
     }
 
@@ -658,9 +738,9 @@ const LabourManagement = React.memo(({ labours, onUpdate }) => {
   return (
     <div className="labour-management">
       <div className="section-header">
-        <h3>Labour Management</h3>
+        <h3>👷 Labour Entries</h3>
         <button className="add-btn" onClick={() => { resetForm(); setShowForm(true); }}>
-          + Add Labour Entry
+          + Add Entry
         </button>
       </div>
 
@@ -674,9 +754,9 @@ const LabourManagement = React.memo(({ labours, onUpdate }) => {
             <thead>
               <tr>
                 <th>Date</th>
-                <th>No. of Labours</th>
+                <th>No.</th>
                 <th>Daily Salary (₹)</th> 
-                <th>Total Daily Salary (₹)</th> 
+                <th>Total (₹)</th> 
                 <th>Work Description</th>
                 <th>Actions</th>
               </tr>
@@ -705,7 +785,7 @@ const LabourManagement = React.memo(({ labours, onUpdate }) => {
                         onClick={() => deleteLabour(labour.id)}
                         title="Delete labour entry"
                       >
-                        Delete
+                        🗑️
                       </button>
                     </div>
                   </td>
@@ -775,14 +855,11 @@ const LabourManagement = React.memo(({ labours, onUpdate }) => {
   );
 });
 
-// Enhanced Material Management Component with Total Cost Column & ID Fix
 const MaterialManagement = React.memo(({ materials, onUpdate }) => {
-  // FIX: Ensure all incoming materials have a unique ID, essential for delete/edit on old data
   const generateUniqueId = () => Date.now().toString() + Math.random().toString(36).substring(2);
   const initialMaterials = materials.map(material => ({
     ...material,
     id: material.id || generateUniqueId(),
-    // Ensure cost is a number for calculation, even if old data is missing it
     cost: material.cost !== undefined ? material.cost : 0, 
   }));
     
@@ -817,12 +894,10 @@ const MaterialManagement = React.memo(({ materials, onUpdate }) => {
 
     let updatedMaterials;
     if (editingMaterial) {
-      // Update existing material by ID
       updatedMaterials = initialMaterials.map(material => 
         material.id === editingMaterial.id ? materialData : material
       );
     } else {
-      // Add new material
       updatedMaterials = [...initialMaterials, materialData];
     }
 
@@ -860,7 +935,7 @@ const MaterialManagement = React.memo(({ materials, onUpdate }) => {
   return (
     <div className="material-management">
       <div className="section-header">
-        <h3>Material Management</h3>
+        <h3>🧱 Material Entries</h3>
         <button className="add-btn" onClick={() => { resetForm(); setShowForm(true); }}>
           + Add Material
         </button>
@@ -909,7 +984,7 @@ const MaterialManagement = React.memo(({ materials, onUpdate }) => {
                         onClick={() => deleteMaterial(material.id)}
                         title="Delete material entry"
                       >
-                        Delete
+                        🗑️
                       </button>
                     </div>
                   </td>
@@ -992,15 +1067,17 @@ const MaterialManagement = React.memo(({ materials, onUpdate }) => {
   );
 });
 
-// Project Info Component
 const ProjectInfo = React.memo(({ project, onUpdate }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState(project);
 
   const saveChanges = () => {
+    const progress = Math.min(100, Math.max(0, parseInt(formData.percentageComplete) || 0));
+    
     onUpdate({
       ...formData,
-      projectValue: parseFloat(formData.projectValue)
+      projectValue: parseFloat(formData.projectValue),
+      percentageComplete: progress // Save clamped progress value
     });
     setIsEditing(false);
   };
@@ -1013,7 +1090,7 @@ const ProjectInfo = React.memo(({ project, onUpdate }) => {
           className={isEditing ? 'save-btn' : 'edit-btn'}
           onClick={isEditing ? saveChanges : () => setIsEditing(true)}
         >
-          {isEditing ? 'Save' : 'Edit'}
+          {isEditing ? '💾 Save' : '✏️ Edit'}
         </button>
       </div>
 
@@ -1043,6 +1120,21 @@ const ProjectInfo = React.memo(({ project, onUpdate }) => {
             />
           ) : (
             <span>₹{project.projectValue?.toLocaleString('en-IN')}</span>
+          )}
+        </div>
+        
+        <div className="info-item">
+          <label>Progress (%)</label>
+          {isEditing ? (
+            <input
+              type="number"
+              value={formData.percentageComplete}
+              onChange={(e) => setFormData({...formData, percentageComplete: e.target.value})}
+              min="0"
+              max="100"
+            />
+          ) : (
+            <span>{project.percentageComplete || 0}%</span>
           )}
         </div>
 
