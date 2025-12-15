@@ -382,7 +382,7 @@ body {
 .table-container table {
   width: 100%;
   border-collapse: collapse;
-  /* Increased minimum width to accommodate two new calculated columns */
+  /* UPDATED MIN-WIDTH: Increased to accommodate the new salary and total cost columns */
   min-width: 750px; 
 }
 
