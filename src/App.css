@@ -1,4 +1,4 @@
-/* App.css - Android Mobile Optimized - UPDATED */
+/* App.css - UI TEST: Enhanced Mobile Design */
 * {
   margin: 0;
   padding: 0;
@@ -6,8 +6,10 @@
 }
 
 body {
+  /* Use a modern, slightly darker font */
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* Darker background for high contrast */
+  background: #f4f7f9; 
   min-height: 100vh;
   color: #1a202c;
   line-height: 1.5;
@@ -20,10 +22,13 @@ body {
 
 /* Header */
 .app-header {
+  /* Rich, deep primary color */
   background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
   color: white;
   padding: 1.5rem 1rem;
   text-align: center;
+  /* Smooth transition effect */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .header-content h1 {
@@ -45,6 +50,47 @@ body {
   overflow-x: hidden;
 }
 
+/* --- BUTTONS & ACTIONS --- */
+.back-btn {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  padding: 0.875rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  color: #2d3748;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s;
+}
+
+.add-btn, .save-btn {
+  background: #10b981; /* Green for success/add */
+  color: white;
+  border: none;
+  padding: 0.875rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+  transition: all 0.2s;
+}
+
+.delete-btn {
+  background: #ef4444; /* Red for destructive action */
+  color: white;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  min-width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
 /* Dashboard */
 .dashboard {
   padding: 1rem 0;
@@ -57,22 +103,26 @@ body {
 
 .section-header h2 {
   font-size: 1.4rem;
-  color: white;
+  color: #1e3c72; /* Darker heading */
   margin-bottom: 0.5rem;
 }
 
 .section-header p {
-  color: rgba(255,255,255,0.9);
+  color: #4a5568;
   font-size: 0.9rem;
 }
 
 .export-section {
   text-align: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .export-btn {
-  background: #10b981;
+  background: #2a5298; /* Use app primary color */
   color: white;
   border: none;
   padding: 1rem 1.5rem;
@@ -82,6 +132,13 @@ body {
   cursor: pointer;
   width: 100%;
   max-width: 280px;
+  box-shadow: 0 4px 10px rgba(42, 82, 152, 0.4);
+}
+
+.export-note {
+    font-size: 0.8rem;
+    color: #718096;
+    margin-top: 0.75rem;
 }
 
 /* States Grid */
@@ -95,28 +152,44 @@ body {
   background: white;
   padding: 1.5rem;
   border-radius: 12px;
-  text-align: center;
+  text-align: left;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.state-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.state-info {
+    display: flex;
+    align-items: center;
 }
 
 .state-icon {
   width: 50px;
   height: 50px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: #667eea; 
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 1rem;
+  margin-right: 1rem;
   color: white;
   font-weight: bold;
+  font-size: 1.2rem;
+  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.5);
 }
 
 .state-card h3 {
   font-size: 1.2rem;
   color: #2d3748;
-  margin-bottom: 0.5rem;
+  margin: 0;
 }
 
 /* Project List */
@@ -124,45 +197,23 @@ body {
   padding: 1rem 0;
 }
 
-.section-header {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.back-btn {
-  background: white;
-  border: none;
-  padding: 0.875rem 1rem;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  color: #2d3748;
-  text-align: center;
-}
-
-.add-btn {
-  background: #10b981;
-  color: white;
-  border: none;
-  padding: 0.875rem 1rem;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-}
-
 .projects-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
 .project-card {
   background: white;
-  padding: 1.25rem;
+  padding: 1.5rem;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.project-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
 }
 
 .project-header {
@@ -173,8 +224,8 @@ body {
 }
 
 .project-header h3 {
-  color: #2d3748;
-  font-size: 1.1rem;
+  color: #2a5298; /* Use primary color for project name */
+  font-size: 1.2rem;
   margin: 0;
 }
 
@@ -190,22 +241,8 @@ body {
   color: white;
   padding: 0.4rem 0.8rem;
   border-radius: 16px;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 600;
-}
-
-.delete-btn {
-  background: #ef4444;
-  color: white;
-  border: none;
-  padding: 0.5rem;
-  border-radius: 6px;
-  cursor: pointer;
-  min-width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .project-desc {
@@ -220,131 +257,69 @@ body {
   gap: 0.5rem;
   color: #718096;
   font-size: 0.85rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
 }
 
-/* Modal */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 1rem;
+/* --- Project Detail & Tabs --- */
+
+/* Project Financial Summary Box */
+.financial-summary {
+    background: #f0f4f7;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
 }
 
-.modal {
-  background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  width: 100%;
-  max-width: 500px;
-  max-height: 80vh;
-  overflow-y: auto;
+.summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
 }
 
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
+.summary-item {
+    padding: 0.75rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
-.modal-header h3 {
-  color: #2d3748;
-  font-size: 1.2rem;
+.summary-item label {
+    font-size: 0.75rem;
+    color: #718096;
+    display: block;
+    margin-bottom: 0.25rem;
 }
 
-.close-btn {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: #718096;
+.summary-item span {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #2d3748;
 }
 
-.form-group {
-  margin-bottom: 1rem;
+/* Progress Bar */
+.progress-container {
+    margin-top: 1rem;
+    background: #e2e8f0;
+    border-radius: 5px;
+    height: 10px;
+    overflow: hidden;
 }
 
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-  color: #2d3748;
+.progress-bar {
+    height: 100%;
+    background: #667eea;
+    transition: width 0.5s ease-in-out;
 }
 
-.form-group input,
-.form-group textarea,
-.form-group select {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  font-size: 1rem;
-}
-
-.form-row {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.modal-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  margin-top: 1.5rem;
-}
-
-.modal-actions button {
-  padding: 0.875rem;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 1rem;
-}
-
-.modal-actions button[type="button"] {
-  background: #e2e8f0;
-  color: #4a5568;
-}
-
-.modal-actions button[type="submit"] {
-  background: #667eea;
-  color: white;
-}
-
-/* Project Detail */
-.project-detail {
-  padding: 1rem 0;
-}
-
-.project-location {
-  color: #718096;
-  font-size: 0.9rem;
-  margin-bottom: 1rem;
-}
-
-/* Tabs with Horizontal Scroll */
-.tabs-container {
-  width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  margin-bottom: 1rem;
-}
-
+/* Tabs */
 .tabs {
   display: flex;
-  background: white;
+  background: #e2e8f0;
   border-radius: 8px;
   padding: 0.25rem;
-  min-width: max-content;
+  margin-bottom: 1rem;
 }
 
 .tabs button {
@@ -354,289 +329,114 @@ body {
   cursor: pointer;
   border-radius: 6px;
   font-weight: 600;
-  color: #718096;
-  white-space: nowrap;
-  min-width: 120px;
+  color: #4a5568;
+  flex-grow: 1;
+  transition: background 0.2s, color 0.2s;
 }
 
 .tabs button.active {
-  background: #667eea;
+  background: #2a5298; 
   color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .tab-content {
   background: white;
-  border-radius: 8px;
-  padding: 1rem;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-/* Tables with Horizontal Scroll */
+
+/* --- Forms & Modals --- */
+.modal-overlay {
+  background: rgba(0,0,0,0.7);
+}
+
+.modal {
+  max-width: 90%; 
+  padding: 1.5rem;
+}
+
+.form-group label {
+  color: #2d3748;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  border: 1px solid #cbd5e0;
+  background: #f8fafc;
+}
+
+.modal-actions button[type="submit"] {
+  background: #2a5298; /* Use primary color for main action */
+}
+
+/* --- Tables --- */
 .table-container {
-  width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  background: white;
+  /* Added border for a cleaner look */
+  border: 1px solid #e2e8f0; 
   border-radius: 8px;
-}
-
-.table-container table {
-  width: 100%;
-  border-collapse: collapse;
-  /* UPDATED MIN-WIDTH: Increased to accommodate the new salary and total cost columns */
-  min-width: 750px; 
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
 .table-container th {
-  background: #f7fafc;
-  padding: 0.75rem;
-  text-align: left;
-  font-weight: 600;
-  color: #2d3748;
-  border-bottom: 1px solid #e2e8f0;
-  white-space: nowrap;
+  background: #e9eff4; /* Light blue header */
+  color: #1e3c72;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .table-container td {
-  padding: 0.75rem;
-  border-bottom: 1px solid #e2e8f0;
-  color: #4a5568;
-}
-
-.table-container td:last-child {
-  /* Reduce padding on the last cell (Actions) for tighter layout */
-  padding: 0.5rem 0.75rem; 
-}
-
-.action-buttons {
-  display: flex;
-  gap: 0.5rem;
-  /* Ensure action buttons are compact in the table */
-  flex-wrap: nowrap; 
-}
-
-.edit-btn {
-  background: #3b82f6;
-  color: white;
-  border: none;
-  padding: 0.5rem 0.75rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.8rem;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-/* Project Info */
-.info-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.info-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.info-item label {
-  font-weight: 600;
-  color: #2d3748;
   font-size: 0.9rem;
 }
 
+.action-buttons button {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.75rem;
+}
+
+/* Project Info Grid (Same as original but with new background) */
 .info-item span,
 .info-item input,
 .info-item textarea {
-  padding: 0.75rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
+  border: 1px solid #cbd5e0;
   background: #f8fafc;
-  color: #4a5568;
-  font-size: 1rem;
 }
-
-.edit-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  margin-top: 1.5rem;
-}
-
-.save-btn {
-  background: #10b981;
-  color: white;
-  border: none;
-  padding: 0.875rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 1rem;
-}
-
-/* Empty State */
-.empty-state {
-  text-align: center;
-  padding: 2rem 1rem;
-  background: white;
-  border-radius: 8px;
-  color: #718096;
-}
-
-/* PWA Install Prompt Styling */
-.pwa-install-prompt {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 100;
-    padding: 0.5rem;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(5px);
-    border-top-left-radius: 15px;
-    border-top-right-radius: 15px;
-    box-shadow: 0 -4px 12px rgba(0,0,0,0.1);
-}
-
-.pwa-prompt-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 0.5rem;
-}
-
-.pwa-prompt-info {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.pwa-icon {
-    font-size: 2rem;
-}
-
-.pwa-prompt-info h4 {
-    font-size: 1rem;
-    color: #1e3c72;
-    margin-bottom: 0.2rem;
-}
-
-.pwa-prompt-info p {
-    font-size: 0.8rem;
-    color: #4a5568;
-}
-
-.pwa-prompt-actions {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.pwa-cancel-btn {
-    background: #e2e8f0;
-    color: #4a5568;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.8rem;
-}
-
-.pwa-install-btn {
-    background: #10b981;
-    color: white;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.8rem;
-}
-
 
 /* Tablet and Desktop */
 @media (min-width: 768px) {
-  .app-header {
-    padding: 2rem;
-  }
-  
-  .header-content h1 {
-    font-size: 2rem;
-  }
-  
-  .main-content {
-    padding: 1.5rem;
-  }
-  
-  .section-header {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  .back-btn,
-  .add-btn {
-    width: auto;
-  }
-  
-  .states-grid {
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-  }
-  
-  .projects-grid {
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.5rem;
-  }
-  
-  .project-header {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: flex-start;
-  }
-  
-  .project-actions {
-    width: auto;
-    justify-content: flex-end;
-  }
-  
-  .form-row {
-    flex-direction: row;
-  }
-  
-  .modal-actions {
-    flex-direction: row;
-    justify-content: flex-end;
-  }
-  
-  .edit-actions {
-    flex-direction: row;
-    justify-content: flex-end;
-  }
-
-  .pwa-install-prompt {
-      padding: 1rem;
-  }
-
-  .pwa-prompt-content {
-      padding: 0;
-  }
+    .section-header {
+        text-align: left;
+    }
+    .section-header h2 {
+        margin: 0;
+    }
+    .states-grid {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+    .summary-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
 }
 
-/* Large Mobile */
-@media (min-width: 480px) and (max-width: 767px) {
-  .project-actions {
-    flex-wrap: wrap;
-  }
-  
-  .action-buttons {
-    flex-wrap: wrap;
-  }
-}
-
-/* Touch improvements for Android */
+/* Mobile Adjustments for Header/Actions */
 @media (max-width: 767px) {
-  button, 
-  .state-card, 
-  .project-card {
-    -webkit-tap-highlight-color: transparent;
-  }
-  
-  button:active {
-    transform: scale(0.98);
-  }
+    .section-header {
+        /* Force two lines for back button and title on mobile */
+        flex-direction: column; 
+        align-items: stretch;
+    }
+    .section-header h2 {
+        text-align: center;
+        margin-top: 0.5rem;
+    }
+    .section-header .back-btn,
+    .section-header .add-btn {
+        width: 100%;
+        order: 1; /* Put buttons first */
+    }
 }
