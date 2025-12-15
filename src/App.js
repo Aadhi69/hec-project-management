@@ -1,4 +1,4 @@
-/* App.js - Android Mobile Optimized */
+/* App.js - Android Mobile Optimized - UPDATED */
 import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import { database } from './firebase';
@@ -161,8 +161,8 @@ function App() {
         'Start Date': new Date(project.startDate).toLocaleDateString(),
         'Completion Date': project.tentativeCompletion ? new Date(project.tentativeCompletion).toLocaleDateString() : 'N/A',
         'Project Value (₹)': project.projectValue,
-        'Total Labours': project.labours?.length || 0,
-        'Total Materials': project.materials?.length || 0,
+        'Total Labour Entries': project.labours?.length || 0,
+        'Total Material Entries': project.materials?.length || 0,
         'Created Date': new Date(project.createdAt).toLocaleDateString()
       }));
 
@@ -174,7 +174,8 @@ function App() {
           'State': project.state,
           'Date': new Date(labour.date).toLocaleDateString(),
           'Number of Labours': labour.numberOfLabours,
-          'Role': labour.role,
+          'Daily Salary (₹)': labour.dailySalary, // Changed from Role
+          'Total Daily Salary (₹)': labour.dailySalary * labour.numberOfLabours, // New column
           'Work Description': labour.workDescription
         }))
       );
@@ -186,8 +187,9 @@ function App() {
           'Project Name': project.projectName,
           'State': project.state,
           'Material Name': material.materialName,
-          'Cost (₹)': material.cost,
+          'Unit Cost (₹)': material.cost, // Changed label to Unit Cost
           'Quantity': material.quantity,
+          'Total Cost (₹)': material.cost * material.quantity, // New column
           'Purchase Date': new Date(material.dateOfPurchase).toLocaleDateString(),
           'Supplier': material.supplier
         }))
@@ -473,6 +475,8 @@ const ProjectForm = React.memo(({ state, onSave, onCancel }) => {
                 value={formData.projectValue}
                 onChange={(e) => setFormData({...formData, projectValue: e.target.value})}
                 required
+                min="0"
+                step="0.01"
               />
             </div>
           </div>
@@ -571,14 +575,14 @@ const ProjectDetail = React.memo(({ project, onBack, onUpdateProject, onDeletePr
   );
 });
 
-// Enhanced Labour Management Component with Edit Functionality
+// Enhanced Labour Management Component with Salary instead of Role
 const LabourManagement = React.memo(({ labours, onUpdate }) => {
   const [showForm, setShowForm] = useState(false);
   const [editingLabour, setEditingLabour] = useState(null);
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
     numberOfLabours: '',
-    role: '',
+    dailySalary: '', // Changed from role
     workDescription: ''
   });
 
@@ -586,7 +590,7 @@ const LabourManagement = React.memo(({ labours, onUpdate }) => {
     setFormData({
       date: new Date().toISOString().split('T')[0],
       numberOfLabours: '',
-      role: '',
+      dailySalary: '', // Changed from role
       workDescription: ''
     });
     setEditingLabour(null);
@@ -596,7 +600,8 @@ const LabourManagement = React.memo(({ labours, onUpdate }) => {
     const labourData = {
       ...formData,
       id: editingLabour ? editingLabour.id : Date.now().toString(),
-      numberOfLabours: parseInt(formData.numberOfLabours)
+      numberOfLabours: parseInt(formData.numberOfLabours),
+      dailySalary: parseFloat(formData.dailySalary) // Parse salary as float
     };
 
     let updatedLabours;
@@ -621,7 +626,7 @@ const LabourManagement = React.memo(({ labours, onUpdate }) => {
     setFormData({
       date: labour.date,
       numberOfLabours: labour.numberOfLabours.toString(),
-      role: labour.role,
+      dailySalary: labour.dailySalary.toString(), // Changed from role
       workDescription: labour.workDescription
     });
     setShowForm(true);
@@ -634,7 +639,12 @@ const LabourManagement = React.memo(({ labours, onUpdate }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    handleSaveLabour();
+    // Basic validation
+    if (formData.numberOfLabours > 0 && formData.dailySalary >= 0) {
+      handleSaveLabour();
+    } else {
+      alert('Please enter valid numbers for labours and salary.');
+    }
   };
 
   return (
@@ -657,7 +667,8 @@ const LabourManagement = React.memo(({ labours, onUpdate }) => {
               <tr>
                 <th>Date</th>
                 <th>No. of Labours</th>
-                <th>Role</th>
+                <th>Daily Salary (₹)</th> {/* Changed from Role */}
+                <th>Total Daily Salary (₹)</th> {/* New Column */}
                 <th>Work Description</th>
                 <th>Actions</th>
               </tr>
@@ -667,7 +678,10 @@ const LabourManagement = React.memo(({ labours, onUpdate }) => {
                 <tr key={labour.id}>
                   <td>{new Date(labour.date).toLocaleDateString()}</td>
                   <td>{labour.numberOfLabours}</td>
-                  <td>{labour.role}</td>
+                  <td>₹{labour.dailySalary?.toLocaleString('en-IN', { minimumFractionDigits: 0 })}</td> {/* Display salary */}
+                  <td>
+                    ₹{(labour.numberOfLabours * labour.dailySalary)?.toLocaleString('en-IN', { minimumFractionDigits: 0 })}
+                  </td> {/* Calculate and display total salary */}
                   <td>{labour.workDescription}</td>
                   <td>
                     <div className="action-buttons">
@@ -722,12 +736,14 @@ const LabourManagement = React.memo(({ labours, onUpdate }) => {
                 />
               </div>
               <div className="form-group">
-                <label>Role *</label>
+                <label>Daily Salary (₹) *</label> {/* Changed from Role */}
                 <input
-                  type="text"
-                  value={formData.role}
-                  onChange={(e) => setFormData({...formData, role: e.target.value})}
+                  type="number"
+                  value={formData.dailySalary}
+                  onChange={(e) => setFormData({...formData, dailySalary: e.target.value})}
                   required
+                  min="0"
+                  step="0.01"
                 />
               </div>
               <div className="form-group">
@@ -751,7 +767,7 @@ const LabourManagement = React.memo(({ labours, onUpdate }) => {
   );
 });
 
-// Enhanced Material Management Component with Edit Functionality
+// Enhanced Material Management Component with Total Cost Column
 const MaterialManagement = React.memo(({ materials, onUpdate }) => {
   const [showForm, setShowForm] = useState(false);
   const [editingMaterial, setEditingMaterial] = useState(null);
@@ -818,7 +834,12 @@ const MaterialManagement = React.memo(({ materials, onUpdate }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    handleSaveMaterial();
+    // Basic validation
+    if (formData.quantity > 0 && formData.cost >= 0) {
+      handleSaveMaterial();
+    } else {
+      alert('Please enter valid numbers for quantity and cost.');
+    }
   };
 
   return (
@@ -840,8 +861,9 @@ const MaterialManagement = React.memo(({ materials, onUpdate }) => {
             <thead>
               <tr>
                 <th>Material Name</th>
-                <th>Cost (₹)</th>
+                <th>Unit Cost (₹)</th>
                 <th>Quantity</th>
+                <th>Total Cost (₹)</th> {/* New Column */}
                 <th>Purchase Date</th>
                 <th>Supplier</th>
                 <th>Actions</th>
@@ -851,8 +873,11 @@ const MaterialManagement = React.memo(({ materials, onUpdate }) => {
               {materials.map(material => (
                 <tr key={material.id}>
                   <td>{material.materialName}</td>
-                  <td>₹{material.cost?.toLocaleString('en-IN')}</td>
+                  <td>₹{material.cost?.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                   <td>{material.quantity}</td>
+                  <td>
+                    ₹{(material.cost * material.quantity)?.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  </td> {/* Calculate and display total cost */}
                   <td>{new Date(material.dateOfPurchase).toLocaleDateString()}</td>
                   <td>{material.supplier}</td>
                   <td>
@@ -899,7 +924,7 @@ const MaterialManagement = React.memo(({ materials, onUpdate }) => {
               </div>
               <div className="form-row">
                 <div className="form-group">
-                  <label>Cost (₹) *</label>
+                  <label>Unit Cost (₹) *</label>
                   <input
                     type="number"
                     value={formData.cost}
@@ -998,6 +1023,8 @@ const ProjectInfo = React.memo(({ project, onUpdate }) => {
               type="number"
               value={formData.projectValue}
               onChange={(e) => setFormData({...formData, projectValue: e.target.value})}
+              min="0"
+              step="0.01"
             />
           ) : (
             <span>₹{project.projectValue?.toLocaleString('en-IN')}</span>
@@ -1029,6 +1056,19 @@ const ProjectInfo = React.memo(({ project, onUpdate }) => {
             <span>{new Date(project.startDate).toLocaleDateString()}</span>
           )}
         </div>
+        
+        <div className="info-item">
+          <label>Completion Date</label>
+          {isEditing ? (
+            <input
+              type="date"
+              value={formData.tentativeCompletion}
+              onChange={(e) => setFormData({...formData, tentativeCompletion: e.target.value})}
+            />
+          ) : (
+            <span>{project.tentativeCompletion ? new Date(project.tentativeCompletion).toLocaleDateString() : 'N/A'}</span>
+          )}
+        </div>
 
         <div className="info-item full-width">
           <label>Description</label>
@@ -1046,7 +1086,7 @@ const ProjectInfo = React.memo(({ project, onUpdate }) => {
 
       {isEditing && (
         <div className="edit-actions">
-          <button onClick={() => setIsEditing(false)}>Cancel</button>
+          <button onClick={() => {setIsEditing(false); setFormData(project);}}>Cancel</button>
         </div>
       )}
     </div>
