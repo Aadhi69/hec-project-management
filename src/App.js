@@ -1,4 +1,4 @@
-/* App.js - Android Mobile Optimized - UPDATED */
+/* App.js - Android Mobile Optimized - FINAL VERSION */
 import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import { database } from './firebase';
@@ -18,6 +18,9 @@ function App() {
   const states = [
     'Tamil Nadu', 'Delhi', 'Uttar Pradesh'
   ];
+
+  // Utility to generate a unique ID for old entries that might be missing one
+  const generateUniqueId = () => Date.now().toString() + Math.random().toString(36).substring(2);
 
   // Load data from Firebase with useCallback to prevent unnecessary re-renders
   const loadProjectsFromFirebase = useCallback(async () => {
@@ -54,7 +57,7 @@ function App() {
   const addProject = useCallback(async (newProject) => {
     const project = {
       ...newProject,
-      id: Date.now().toString(),
+      id: generateUniqueId(),
       labours: [],
       materials: [],
       createdAt: new Date().toISOString(),
@@ -140,7 +143,6 @@ function App() {
   // Export to Excel function
   const exportToExcel = async () => {
     try {
-      // Get all projects data (use current state or fetch fresh from Firebase)
       const allProjects = projects.length > 0 ? projects : await database.getProjects();
       
       if (allProjects.length === 0) {
@@ -148,7 +150,6 @@ function App() {
         return;
       }
 
-      // Create workbook
       const wb = XLSX.utils.book_new();
       
       // Prepare projects data for Excel
@@ -166,7 +167,7 @@ function App() {
         'Created Date': new Date(project.createdAt).toLocaleDateString()
       }));
 
-      // Prepare labours data for Excel
+      // Prepare labours data for Excel (Includes Daily Salary and Total Daily Salary)
       const laboursData = allProjects.flatMap(project => 
         (project.labours || []).map(labour => ({
           'Project ID': project.id,
@@ -174,22 +175,22 @@ function App() {
           'State': project.state,
           'Date': new Date(labour.date).toLocaleDateString(),
           'Number of Labours': labour.numberOfLabours,
-          'Daily Salary (₹)': labour.dailySalary, // Changed from Role
-          'Total Daily Salary (₹)': labour.dailySalary * labour.numberOfLabours, // New column
+          'Daily Salary (₹)': labour.dailySalary || 0, // Fallback for old data
+          'Total Daily Salary (₹)': (labour.dailySalary || 0) * labour.numberOfLabours,
           'Work Description': labour.workDescription
         }))
       );
 
-      // Prepare materials data for Excel
+      // Prepare materials data for Excel (Includes Total Cost)
       const materialsData = allProjects.flatMap(project => 
         (project.materials || []).map(material => ({
           'Project ID': project.id,
           'Project Name': project.projectName,
           'State': project.state,
           'Material Name': material.materialName,
-          'Unit Cost (₹)': material.cost, // Changed label to Unit Cost
+          'Unit Cost (₹)': material.cost || 0, // Fallback for old data
           'Quantity': material.quantity,
-          'Total Cost (₹)': material.cost * material.quantity, // New column
+          'Total Cost (₹)': (material.cost || 0) * material.quantity,
           'Purchase Date': new Date(material.dateOfPurchase).toLocaleDateString(),
           'Supplier': material.supplier
         }))
@@ -575,14 +576,23 @@ const ProjectDetail = React.memo(({ project, onBack, onUpdateProject, onDeletePr
   );
 });
 
-// Enhanced Labour Management Component with Salary instead of Role
+// Enhanced Labour Management Component with Salary instead of Role & ID Fix
 const LabourManagement = React.memo(({ labours, onUpdate }) => {
+  // FIX: Ensure all incoming labours have a unique ID, essential for delete/edit on old data
+  const generateUniqueId = () => Date.now().toString() + Math.random().toString(36).substring(2);
+  const initialLabours = labours.map(labour => ({
+    ...labour,
+    id: labour.id || generateUniqueId(),
+    // Ensure salary is a number for calculation, even if old data is missing it
+    dailySalary: labour.dailySalary !== undefined ? labour.dailySalary : 0, 
+  }));
+  
   const [showForm, setShowForm] = useState(false);
   const [editingLabour, setEditingLabour] = useState(null);
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
     numberOfLabours: '',
-    dailySalary: '', // Changed from role
+    dailySalary: '', 
     workDescription: ''
   });
 
@@ -590,7 +600,7 @@ const LabourManagement = React.memo(({ labours, onUpdate }) => {
     setFormData({
       date: new Date().toISOString().split('T')[0],
       numberOfLabours: '',
-      dailySalary: '', // Changed from role
+      dailySalary: '',
       workDescription: ''
     });
     setEditingLabour(null);
@@ -599,23 +609,22 @@ const LabourManagement = React.memo(({ labours, onUpdate }) => {
   const handleSaveLabour = () => {
     const labourData = {
       ...formData,
-      id: editingLabour ? editingLabour.id : Date.now().toString(),
+      id: editingLabour ? editingLabour.id : generateUniqueId(),
       numberOfLabours: parseInt(formData.numberOfLabours),
-      dailySalary: parseFloat(formData.dailySalary) // Parse salary as float
+      dailySalary: parseFloat(formData.dailySalary)
     };
 
     let updatedLabours;
     if (editingLabour) {
-      // Update existing labour
-      updatedLabours = labours.map(labour => 
+      // Update existing labour by ID
+      updatedLabours = initialLabours.map(labour => 
         labour.id === editingLabour.id ? labourData : labour
       );
     } else {
       // Add new labour
-      updatedLabours = [...labours, labourData];
+      updatedLabours = [...initialLabours, labourData];
     }
 
-    // Update parent component immediately
     onUpdate(updatedLabours);
     setShowForm(false);
     resetForm();
@@ -626,20 +635,19 @@ const LabourManagement = React.memo(({ labours, onUpdate }) => {
     setFormData({
       date: labour.date,
       numberOfLabours: labour.numberOfLabours.toString(),
-      dailySalary: labour.dailySalary.toString(), // Changed from role
+      dailySalary: labour.dailySalary.toString(),
       workDescription: labour.workDescription
     });
     setShowForm(true);
   };
 
   const deleteLabour = (id) => {
-    const updatedLabours = labours.filter(labour => labour.id !== id);
+    const updatedLabours = initialLabours.filter(labour => labour.id !== id);
     onUpdate(updatedLabours);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Basic validation
     if (formData.numberOfLabours > 0 && formData.dailySalary >= 0) {
       handleSaveLabour();
     } else {
@@ -656,7 +664,7 @@ const LabourManagement = React.memo(({ labours, onUpdate }) => {
         </button>
       </div>
 
-      {labours.length === 0 ? (
+      {initialLabours.length === 0 ? (
         <div className="empty-state">
           <p>No labour entries yet</p>
         </div>
@@ -667,21 +675,21 @@ const LabourManagement = React.memo(({ labours, onUpdate }) => {
               <tr>
                 <th>Date</th>
                 <th>No. of Labours</th>
-                <th>Daily Salary (₹)</th> {/* Changed from Role */}
-                <th>Total Daily Salary (₹)</th> {/* New Column */}
+                <th>Daily Salary (₹)</th> 
+                <th>Total Daily Salary (₹)</th> 
                 <th>Work Description</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {labours.map(labour => (
+              {initialLabours.map(labour => (
                 <tr key={labour.id}>
                   <td>{new Date(labour.date).toLocaleDateString()}</td>
                   <td>{labour.numberOfLabours}</td>
-                  <td>₹{labour.dailySalary?.toLocaleString('en-IN', { minimumFractionDigits: 0 })}</td> {/* Display salary */}
+                  <td>₹{labour.dailySalary?.toLocaleString('en-IN', { minimumFractionDigits: 0 })}</td> 
                   <td>
                     ₹{(labour.numberOfLabours * labour.dailySalary)?.toLocaleString('en-IN', { minimumFractionDigits: 0 })}
-                  </td> {/* Calculate and display total salary */}
+                  </td> 
                   <td>{labour.workDescription}</td>
                   <td>
                     <div className="action-buttons">
@@ -736,7 +744,7 @@ const LabourManagement = React.memo(({ labours, onUpdate }) => {
                 />
               </div>
               <div className="form-group">
-                <label>Daily Salary (₹) *</label> {/* Changed from Role */}
+                <label>Daily Salary (₹) *</label> 
                 <input
                   type="number"
                   value={formData.dailySalary}
@@ -767,8 +775,17 @@ const LabourManagement = React.memo(({ labours, onUpdate }) => {
   );
 });
 
-// Enhanced Material Management Component with Total Cost Column
+// Enhanced Material Management Component with Total Cost Column & ID Fix
 const MaterialManagement = React.memo(({ materials, onUpdate }) => {
+  // FIX: Ensure all incoming materials have a unique ID, essential for delete/edit on old data
+  const generateUniqueId = () => Date.now().toString() + Math.random().toString(36).substring(2);
+  const initialMaterials = materials.map(material => ({
+    ...material,
+    id: material.id || generateUniqueId(),
+    // Ensure cost is a number for calculation, even if old data is missing it
+    cost: material.cost !== undefined ? material.cost : 0, 
+  }));
+    
   const [showForm, setShowForm] = useState(false);
   const [editingMaterial, setEditingMaterial] = useState(null);
   const [formData, setFormData] = useState({
@@ -793,23 +810,22 @@ const MaterialManagement = React.memo(({ materials, onUpdate }) => {
   const handleSaveMaterial = () => {
     const materialData = {
       ...formData,
-      id: editingMaterial ? editingMaterial.id : Date.now().toString(),
+      id: editingMaterial ? editingMaterial.id : generateUniqueId(),
       cost: parseFloat(formData.cost),
       quantity: parseInt(formData.quantity)
     };
 
     let updatedMaterials;
     if (editingMaterial) {
-      // Update existing material
-      updatedMaterials = materials.map(material => 
+      // Update existing material by ID
+      updatedMaterials = initialMaterials.map(material => 
         material.id === editingMaterial.id ? materialData : material
       );
     } else {
       // Add new material
-      updatedMaterials = [...materials, materialData];
+      updatedMaterials = [...initialMaterials, materialData];
     }
 
-    // Update parent component immediately
     onUpdate(updatedMaterials);
     setShowForm(false);
     resetForm();
@@ -828,13 +844,12 @@ const MaterialManagement = React.memo(({ materials, onUpdate }) => {
   };
 
   const deleteMaterial = (id) => {
-    const updatedMaterials = materials.filter(material => material.id !== id);
+    const updatedMaterials = initialMaterials.filter(material => material.id !== id);
     onUpdate(updatedMaterials);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Basic validation
     if (formData.quantity > 0 && formData.cost >= 0) {
       handleSaveMaterial();
     } else {
@@ -851,7 +866,7 @@ const MaterialManagement = React.memo(({ materials, onUpdate }) => {
         </button>
       </div>
 
-      {materials.length === 0 ? (
+      {initialMaterials.length === 0 ? (
         <div className="empty-state">
           <p>No materials added yet</p>
         </div>
@@ -863,21 +878,21 @@ const MaterialManagement = React.memo(({ materials, onUpdate }) => {
                 <th>Material Name</th>
                 <th>Unit Cost (₹)</th>
                 <th>Quantity</th>
-                <th>Total Cost (₹)</th> {/* New Column */}
+                <th>Total Cost (₹)</th>
                 <th>Purchase Date</th>
                 <th>Supplier</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {materials.map(material => (
+              {initialMaterials.map(material => (
                 <tr key={material.id}>
                   <td>{material.materialName}</td>
                   <td>₹{material.cost?.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                   <td>{material.quantity}</td>
                   <td>
                     ₹{(material.cost * material.quantity)?.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                  </td> {/* Calculate and display total cost */}
+                  </td> 
                   <td>{new Date(material.dateOfPurchase).toLocaleDateString()}</td>
                   <td>{material.supplier}</td>
                   <td>
