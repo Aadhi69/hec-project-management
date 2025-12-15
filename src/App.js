@@ -1,4 +1,4 @@
-/* App.js - Android Mobile Optimized */
+/* App.js - Android Mobile Optimized - FINAL VERSION */
 import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import { database } from './firebase';
@@ -18,6 +18,9 @@ function App() {
   const states = [
     'Tamil Nadu', 'Delhi', 'Uttar Pradesh'
   ];
+
+  // Utility to generate a unique ID for old entries that might be missing one
+  const generateUniqueId = () => Date.now().toString() + Math.random().toString(36).substring(2);
 
   // Load data from Firebase with useCallback to prevent unnecessary re-renders
   const loadProjectsFromFirebase = useCallback(async () => {
@@ -54,7 +57,7 @@ function App() {
   const addProject = useCallback(async (newProject) => {
     const project = {
       ...newProject,
-      id: Date.now().toString(),
+      id: generateUniqueId(),
       labours: [],
       materials: [],
       createdAt: new Date().toISOString(),
@@ -140,7 +143,6 @@ function App() {
   // Export to Excel function
   const exportToExcel = async () => {
     try {
-      // Get all projects data (use current state or fetch fresh from Firebase)
       const allProjects = projects.length > 0 ? projects : await database.getProjects();
       
       if (allProjects.length === 0) {
@@ -148,7 +150,6 @@ function App() {
         return;
       }
 
-      // Create workbook
       const wb = XLSX.utils.book_new();
       
       // Prepare projects data for Excel
@@ -161,12 +162,12 @@ function App() {
         'Start Date': new Date(project.startDate).toLocaleDateString(),
         'Completion Date': project.tentativeCompletion ? new Date(project.tentativeCompletion).toLocaleDateString() : 'N/A',
         'Project Value (₹)': project.projectValue,
-        'Total Labours': project.labours?.length || 0,
-        'Total Materials': project.materials?.length || 0,
+        'Total Labour Entries': project.labours?.length || 0,
+        'Total Material Entries': project.materials?.length || 0,
         'Created Date': new Date(project.createdAt).toLocaleDateString()
       }));
 
-      // Prepare labours data for Excel
+      // Prepare labours data for Excel (Includes Daily Salary and Total Daily Salary)
       const laboursData = allProjects.flatMap(project => 
         (project.labours || []).map(labour => ({
           'Project ID': project.id,
@@ -174,20 +175,22 @@ function App() {
           'State': project.state,
           'Date': new Date(labour.date).toLocaleDateString(),
           'Number of Labours': labour.numberOfLabours,
-          'Role': labour.role,
+          'Daily Salary (₹)': labour.dailySalary || 0, // Fallback for old data
+          'Total Daily Salary (₹)': (labour.dailySalary || 0) * labour.numberOfLabours,
           'Work Description': labour.workDescription
         }))
       );
 
-      // Prepare materials data for Excel
+      // Prepare materials data for Excel (Includes Total Cost)
       const materialsData = allProjects.flatMap(project => 
         (project.materials || []).map(material => ({
           'Project ID': project.id,
           'Project Name': project.projectName,
           'State': project.state,
           'Material Name': material.materialName,
-          'Cost (₹)': material.cost,
+          'Unit Cost (₹)': material.cost || 0, // Fallback for old data
           'Quantity': material.quantity,
+          'Total Cost (₹)': (material.cost || 0) * material.quantity,
           'Purchase Date': new Date(material.dateOfPurchase).toLocaleDateString(),
           'Supplier': material.supplier
         }))
@@ -473,6 +476,8 @@ const ProjectForm = React.memo(({ state, onSave, onCancel }) => {
                 value={formData.projectValue}
                 onChange={(e) => setFormData({...formData, projectValue: e.target.value})}
                 required
+                min="0"
+                step="0.01"
               />
             </div>
           </div>
@@ -571,14 +576,23 @@ const ProjectDetail = React.memo(({ project, onBack, onUpdateProject, onDeletePr
   );
 });
 
-// Enhanced Labour Management Component with Edit Functionality
+// Enhanced Labour Management Component with Salary instead of Role & ID Fix
 const LabourManagement = React.memo(({ labours, onUpdate }) => {
+  // FIX: Ensure all incoming labours have a unique ID, essential for delete/edit on old data
+  const generateUniqueId = () => Date.now().toString() + Math.random().toString(36).substring(2);
+  const initialLabours = labours.map(labour => ({
+    ...labour,
+    id: labour.id || generateUniqueId(),
+    // Ensure salary is a number for calculation, even if old data is missing it
+    dailySalary: labour.dailySalary !== undefined ? labour.dailySalary : 0, 
+  }));
+  
   const [showForm, setShowForm] = useState(false);
   const [editingLabour, setEditingLabour] = useState(null);
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
     numberOfLabours: '',
-    role: '',
+    dailySalary: '', 
     workDescription: ''
   });
 
@@ -586,7 +600,7 @@ const LabourManagement = React.memo(({ labours, onUpdate }) => {
     setFormData({
       date: new Date().toISOString().split('T')[0],
       numberOfLabours: '',
-      role: '',
+      dailySalary: '',
       workDescription: ''
     });
     setEditingLabour(null);
@@ -595,22 +609,22 @@ const LabourManagement = React.memo(({ labours, onUpdate }) => {
   const handleSaveLabour = () => {
     const labourData = {
       ...formData,
-      id: editingLabour ? editingLabour.id : Date.now().toString(),
-      numberOfLabours: parseInt(formData.numberOfLabours)
+      id: editingLabour ? editingLabour.id : generateUniqueId(),
+      numberOfLabours: parseInt(formData.numberOfLabours),
+      dailySalary: parseFloat(formData.dailySalary)
     };
 
     let updatedLabours;
     if (editingLabour) {
-      // Update existing labour
-      updatedLabours = labours.map(labour => 
+      // Update existing labour by ID
+      updatedLabours = initialLabours.map(labour => 
         labour.id === editingLabour.id ? labourData : labour
       );
     } else {
       // Add new labour
-      updatedLabours = [...labours, labourData];
+      updatedLabours = [...initialLabours, labourData];
     }
 
-    // Update parent component immediately
     onUpdate(updatedLabours);
     setShowForm(false);
     resetForm();
@@ -621,20 +635,24 @@ const LabourManagement = React.memo(({ labours, onUpdate }) => {
     setFormData({
       date: labour.date,
       numberOfLabours: labour.numberOfLabours.toString(),
-      role: labour.role,
+      dailySalary: labour.dailySalary.toString(),
       workDescription: labour.workDescription
     });
     setShowForm(true);
   };
 
   const deleteLabour = (id) => {
-    const updatedLabours = labours.filter(labour => labour.id !== id);
+    const updatedLabours = initialLabours.filter(labour => labour.id !== id);
     onUpdate(updatedLabours);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    handleSaveLabour();
+    if (formData.numberOfLabours > 0 && formData.dailySalary >= 0) {
+      handleSaveLabour();
+    } else {
+      alert('Please enter valid numbers for labours and salary.');
+    }
   };
 
   return (
@@ -646,7 +664,7 @@ const LabourManagement = React.memo(({ labours, onUpdate }) => {
         </button>
       </div>
 
-      {labours.length === 0 ? (
+      {initialLabours.length === 0 ? (
         <div className="empty-state">
           <p>No labour entries yet</p>
         </div>
@@ -657,17 +675,21 @@ const LabourManagement = React.memo(({ labours, onUpdate }) => {
               <tr>
                 <th>Date</th>
                 <th>No. of Labours</th>
-                <th>Role</th>
+                <th>Daily Salary (₹)</th> 
+                <th>Total Daily Salary (₹)</th> 
                 <th>Work Description</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {labours.map(labour => (
+              {initialLabours.map(labour => (
                 <tr key={labour.id}>
                   <td>{new Date(labour.date).toLocaleDateString()}</td>
                   <td>{labour.numberOfLabours}</td>
-                  <td>{labour.role}</td>
+                  <td>₹{labour.dailySalary?.toLocaleString('en-IN', { minimumFractionDigits: 0 })}</td> 
+                  <td>
+                    ₹{(labour.numberOfLabours * labour.dailySalary)?.toLocaleString('en-IN', { minimumFractionDigits: 0 })}
+                  </td> 
                   <td>{labour.workDescription}</td>
                   <td>
                     <div className="action-buttons">
@@ -722,12 +744,14 @@ const LabourManagement = React.memo(({ labours, onUpdate }) => {
                 />
               </div>
               <div className="form-group">
-                <label>Role *</label>
+                <label>Daily Salary (₹) *</label> 
                 <input
-                  type="text"
-                  value={formData.role}
-                  onChange={(e) => setFormData({...formData, role: e.target.value})}
+                  type="number"
+                  value={formData.dailySalary}
+                  onChange={(e) => setFormData({...formData, dailySalary: e.target.value})}
                   required
+                  min="0"
+                  step="0.01"
                 />
               </div>
               <div className="form-group">
@@ -751,8 +775,17 @@ const LabourManagement = React.memo(({ labours, onUpdate }) => {
   );
 });
 
-// Enhanced Material Management Component with Edit Functionality
+// Enhanced Material Management Component with Total Cost Column & ID Fix
 const MaterialManagement = React.memo(({ materials, onUpdate }) => {
+  // FIX: Ensure all incoming materials have a unique ID, essential for delete/edit on old data
+  const generateUniqueId = () => Date.now().toString() + Math.random().toString(36).substring(2);
+  const initialMaterials = materials.map(material => ({
+    ...material,
+    id: material.id || generateUniqueId(),
+    // Ensure cost is a number for calculation, even if old data is missing it
+    cost: material.cost !== undefined ? material.cost : 0, 
+  }));
+    
   const [showForm, setShowForm] = useState(false);
   const [editingMaterial, setEditingMaterial] = useState(null);
   const [formData, setFormData] = useState({
@@ -777,23 +810,22 @@ const MaterialManagement = React.memo(({ materials, onUpdate }) => {
   const handleSaveMaterial = () => {
     const materialData = {
       ...formData,
-      id: editingMaterial ? editingMaterial.id : Date.now().toString(),
+      id: editingMaterial ? editingMaterial.id : generateUniqueId(),
       cost: parseFloat(formData.cost),
       quantity: parseInt(formData.quantity)
     };
 
     let updatedMaterials;
     if (editingMaterial) {
-      // Update existing material
-      updatedMaterials = materials.map(material => 
+      // Update existing material by ID
+      updatedMaterials = initialMaterials.map(material => 
         material.id === editingMaterial.id ? materialData : material
       );
     } else {
       // Add new material
-      updatedMaterials = [...materials, materialData];
+      updatedMaterials = [...initialMaterials, materialData];
     }
 
-    // Update parent component immediately
     onUpdate(updatedMaterials);
     setShowForm(false);
     resetForm();
@@ -812,13 +844,17 @@ const MaterialManagement = React.memo(({ materials, onUpdate }) => {
   };
 
   const deleteMaterial = (id) => {
-    const updatedMaterials = materials.filter(material => material.id !== id);
+    const updatedMaterials = initialMaterials.filter(material => material.id !== id);
     onUpdate(updatedMaterials);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    handleSaveMaterial();
+    if (formData.quantity > 0 && formData.cost >= 0) {
+      handleSaveMaterial();
+    } else {
+      alert('Please enter valid numbers for quantity and cost.');
+    }
   };
 
   return (
@@ -830,7 +866,7 @@ const MaterialManagement = React.memo(({ materials, onUpdate }) => {
         </button>
       </div>
 
-      {materials.length === 0 ? (
+      {initialMaterials.length === 0 ? (
         <div className="empty-state">
           <p>No materials added yet</p>
         </div>
@@ -840,19 +876,23 @@ const MaterialManagement = React.memo(({ materials, onUpdate }) => {
             <thead>
               <tr>
                 <th>Material Name</th>
-                <th>Cost (₹)</th>
+                <th>Unit Cost (₹)</th>
                 <th>Quantity</th>
+                <th>Total Cost (₹)</th>
                 <th>Purchase Date</th>
                 <th>Supplier</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {materials.map(material => (
+              {initialMaterials.map(material => (
                 <tr key={material.id}>
                   <td>{material.materialName}</td>
-                  <td>₹{material.cost?.toLocaleString('en-IN')}</td>
+                  <td>₹{material.cost?.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                   <td>{material.quantity}</td>
+                  <td>
+                    ₹{(material.cost * material.quantity)?.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  </td> 
                   <td>{new Date(material.dateOfPurchase).toLocaleDateString()}</td>
                   <td>{material.supplier}</td>
                   <td>
@@ -899,7 +939,7 @@ const MaterialManagement = React.memo(({ materials, onUpdate }) => {
               </div>
               <div className="form-row">
                 <div className="form-group">
-                  <label>Cost (₹) *</label>
+                  <label>Unit Cost (₹) *</label>
                   <input
                     type="number"
                     value={formData.cost}
@@ -998,6 +1038,8 @@ const ProjectInfo = React.memo(({ project, onUpdate }) => {
               type="number"
               value={formData.projectValue}
               onChange={(e) => setFormData({...formData, projectValue: e.target.value})}
+              min="0"
+              step="0.01"
             />
           ) : (
             <span>₹{project.projectValue?.toLocaleString('en-IN')}</span>
@@ -1029,6 +1071,19 @@ const ProjectInfo = React.memo(({ project, onUpdate }) => {
             <span>{new Date(project.startDate).toLocaleDateString()}</span>
           )}
         </div>
+        
+        <div className="info-item">
+          <label>Completion Date</label>
+          {isEditing ? (
+            <input
+              type="date"
+              value={formData.tentativeCompletion}
+              onChange={(e) => setFormData({...formData, tentativeCompletion: e.target.value})}
+            />
+          ) : (
+            <span>{project.tentativeCompletion ? new Date(project.tentativeCompletion).toLocaleDateString() : 'N/A'}</span>
+          )}
+        </div>
 
         <div className="info-item full-width">
           <label>Description</label>
@@ -1046,7 +1101,7 @@ const ProjectInfo = React.memo(({ project, onUpdate }) => {
 
       {isEditing && (
         <div className="edit-actions">
-          <button onClick={() => setIsEditing(false)}>Cancel</button>
+          <button onClick={() => {setIsEditing(false); setFormData(project);}}>Cancel</button>
         </div>
       )}
     </div>

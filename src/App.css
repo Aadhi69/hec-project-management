@@ -1,4 +1,4 @@
-/* App.css - Android Mobile Optimized */
+/* App.css - Android Mobile Optimized - UPDATED */
 * {
   margin: 0;
   padding: 0;
@@ -382,7 +382,8 @@ body {
 .table-container table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 600px;
+  /* UPDATED MIN-WIDTH: Increased to accommodate the new salary and total cost columns */
+  min-width: 750px; 
 }
 
 .table-container th {
@@ -401,9 +402,16 @@ body {
   color: #4a5568;
 }
 
+.table-container td:last-child {
+  /* Reduce padding on the last cell (Actions) for tighter layout */
+  padding: 0.5rem 0.75rem; 
+}
+
 .action-buttons {
   display: flex;
   gap: 0.5rem;
+  /* Ensure action buttons are compact in the table */
+  flex-wrap: nowrap; 
 }
 
 .edit-btn {
@@ -475,6 +483,71 @@ body {
   color: #718096;
 }
 
+/* PWA Install Prompt Styling */
+.pwa-install-prompt {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(5px);
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+    box-shadow: 0 -4px 12px rgba(0,0,0,0.1);
+}
+
+.pwa-prompt-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 0.5rem;
+}
+
+.pwa-prompt-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.pwa-icon {
+    font-size: 2rem;
+}
+
+.pwa-prompt-info h4 {
+    font-size: 1rem;
+    color: #1e3c72;
+    margin-bottom: 0.2rem;
+}
+
+.pwa-prompt-info p {
+    font-size: 0.8rem;
+    color: #4a5568;
+}
+
+.pwa-prompt-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.pwa-cancel-btn {
+    background: #e2e8f0;
+    color: #4a5568;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+}
+
+.pwa-install-btn {
+    background: #10b981;
+    color: white;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+}
+
+
 /* Tablet and Desktop */
 @media (min-width: 768px) {
   .app-header {
@@ -533,6 +606,14 @@ body {
   .edit-actions {
     flex-direction: row;
     justify-content: flex-end;
+  }
+
+  .pwa-install-prompt {
+      padding: 1rem;
+  }
+
+  .pwa-prompt-content {
+      padding: 0;
   }
 }
 
