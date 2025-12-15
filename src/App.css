@@ -1,17 +1,27 @@
-/* App.css - UI TEST: Enhanced Mobile Design */
+/* App.css - UI TEST: Premium Modern & Clean Design */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+:root {
+  --color-primary: #3B82F6; /* Modern Blue/Indigo */
+  --color-success: #10b981;
+  --color-danger: #ef4444;
+  --color-background: #fcfcfc; /* Off-White/Light Gray */
+  --color-secondary-bg: #f4f7f9; /* Subtle contrast */
+  --color-text-main: #1f2937; /* Dark text */
+  --color-text-subtle: #6b7280; /* Subtle gray text */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.08);
+}
+
 body {
-  /* Use a modern, slightly darker font */
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  /* Darker background for high contrast */
-  background: #f4f7f9; 
+  background: var(--color-background); 
   min-height: 100vh;
-  color: #1a202c;
+  color: var(--color-text-main);
   line-height: 1.5;
 }
 
@@ -22,13 +32,11 @@ body {
 
 /* Header */
 .app-header {
-  /* Rich, deep primary color */
-  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  background: var(--color-primary);
   color: white;
   padding: 1.5rem 1rem;
   text-align: center;
-  /* Smooth transition effect */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-md);
 }
 
 .header-content h1 {
@@ -51,44 +59,50 @@ body {
 }
 
 /* --- BUTTONS & ACTIONS --- */
+button {
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+}
+
 .back-btn {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: var(--color-background);
+  border: 1px solid #e5e7eb;
   padding: 0.875rem 1rem;
   border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  color: #2d3748;
-  text-align: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  transition: all 0.2s;
+  color: var(--color-text-main);
+  box-shadow: var(--shadow-sm);
 }
 
 .add-btn, .save-btn {
-  background: #10b981; /* Green for success/add */
+  background: var(--color-success); /* Green */
   color: white;
-  border: none;
   padding: 0.875rem 1rem;
   border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
   box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
-  transition: all 0.2s;
+}
+
+.edit-btn {
+    background: var(--color-primary);
+    color: white;
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    white-space: nowrap;
 }
 
 .delete-btn {
-  background: #ef4444; /* Red for destructive action */
+  background: var(--color-danger); /* Red */
   color: white;
-  border: none;
   padding: 0.5rem;
   border-radius: 6px;
-  cursor: pointer;
   min-width: 40px;
   height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s;
+  font-size: 0.9rem;
 }
 
 /* Dashboard */
@@ -103,12 +117,12 @@ body {
 
 .section-header h2 {
   font-size: 1.4rem;
-  color: #1e3c72; /* Darker heading */
+  color: var(--color-text-main);
   margin-bottom: 0.5rem;
 }
 
 .section-header p {
-  color: #4a5568;
+  color: var(--color-text-subtle);
   font-size: 0.9rem;
 }
 
@@ -118,26 +132,23 @@ body {
   padding: 1.5rem;
   background: white;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-md); /* Premium card shadow */
 }
 
 .export-btn {
-  background: #2a5298; /* Use app primary color */
+  background: var(--color-primary); 
   color: white;
-  border: none;
   padding: 1rem 1.5rem;
   border-radius: 10px;
   font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
   width: 100%;
   max-width: 280px;
-  box-shadow: 0 4px 10px rgba(42, 82, 152, 0.4);
+  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
 }
 
 .export-note {
     font-size: 0.8rem;
-    color: #718096;
+    color: var(--color-text-subtle);
     margin-top: 0.75rem;
 }
 
@@ -145,7 +156,7 @@ body {
 .states-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .state-card {
@@ -154,7 +165,7 @@ body {
   border-radius: 12px;
   text-align: left;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-md); 
   transition: transform 0.2s, box-shadow 0.2s;
   display: flex;
   align-items: center;
@@ -162,8 +173,8 @@ body {
 }
 
 .state-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
 .state-info {
@@ -174,7 +185,7 @@ body {
 .state-icon {
   width: 50px;
   height: 50px;
-  background: #667eea; 
+  background: var(--color-primary); 
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -183,12 +194,11 @@ body {
   color: white;
   font-weight: bold;
   font-size: 1.2rem;
-  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.5);
 }
 
 .state-card h3 {
   font-size: 1.2rem;
-  color: #2d3748;
+  color: var(--color-text-main);
   margin: 0;
 }
 
@@ -207,13 +217,13 @@ body {
   background: white;
   padding: 1.5rem;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-md);
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .project-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
 }
 
 .project-header {
@@ -224,7 +234,7 @@ body {
 }
 
 .project-header h3 {
-  color: #2a5298; /* Use primary color for project name */
+  color: var(--color-primary); 
   font-size: 1.2rem;
   margin: 0;
 }
@@ -237,7 +247,7 @@ body {
 }
 
 .project-value {
-  background: #f59e0b;
+  background: #f59e0b; /* Accent orange for value */
   color: white;
   padding: 0.4rem 0.8rem;
   border-radius: 16px;
@@ -246,7 +256,7 @@ body {
 }
 
 .project-desc {
-  color: #4a5568;
+  color: var(--color-text-subtle);
   margin-bottom: 1rem;
   font-size: 0.9rem;
 }
@@ -255,21 +265,27 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  color: #718096;
+  color: var(--color-text-subtle);
   font-size: 0.85rem;
   padding-top: 1rem;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid #e5e7eb;
 }
 
-/* --- Project Detail & Tabs --- */
+/* --- Project Detail & Summary --- */
 
 /* Project Financial Summary Box */
 .financial-summary {
-    background: #f0f4f7;
+    background: var(--color-secondary-bg);
     border-radius: 12px;
     padding: 1.5rem;
     margin-bottom: 1.5rem;
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.03); /* Subtle inner shadow */
+}
+
+.financial-summary h3 {
+    color: var(--color-text-main);
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
 }
 
 .summary-grid {
@@ -282,132 +298,141 @@ body {
     padding: 0.75rem;
     background: white;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    box-shadow: var(--shadow-sm); /* Lifted appearance */
 }
 
 .summary-item label {
     font-size: 0.75rem;
-    color: #718096;
+    color: var(--color-text-subtle);
     display: block;
     margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    font-weight: 500;
 }
 
 .summary-item span {
     font-size: 1.1rem;
     font-weight: 700;
-    color: #2d3748;
+    color: var(--color-text-main);
 }
-
 /* Progress Bar */
 .progress-container {
     margin-top: 1rem;
-    background: #e2e8f0;
+    background: #e5e7eb;
     border-radius: 5px;
-    height: 10px;
+    height: 8px; /* Slightly slimmer bar */
     overflow: hidden;
 }
 
 .progress-bar {
     height: 100%;
-    background: #667eea;
+    background: var(--color-primary);
     transition: width 0.5s ease-in-out;
 }
 
 /* Tabs */
 .tabs {
   display: flex;
-  background: #e2e8f0;
-  border-radius: 8px;
-  padding: 0.25rem;
-  margin-bottom: 1rem;
+  background: white; /* Clean white background */
+  border-radius: 10px;
+  padding: 0.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-sm);
 }
 
 .tabs button {
-  padding: 0.75rem 1rem;
-  border: none;
+  padding: 0.75rem 0.5rem;
   background: transparent;
-  cursor: pointer;
-  border-radius: 6px;
+  border-radius: 8px;
   font-weight: 600;
-  color: #4a5568;
+  color: var(--color-text-subtle);
   flex-grow: 1;
-  transition: background 0.2s, color 0.2s;
 }
 
 .tabs button.active {
-  background: #2a5298; 
+  background: var(--color-primary); 
   color: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
 }
 
 .tab-content {
   background: white;
   border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-md);
 }
 
 
 /* --- Forms & Modals --- */
 .modal-overlay {
-  background: rgba(0,0,0,0.7);
+  background: rgba(0,0,0,0.5); /* Slightly lighter overlay */
 }
 
 .modal {
-  max-width: 90%; 
-  padding: 1.5rem;
+  background: var(--color-background);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
 }
 
 .form-group label {
-  color: #2d3748;
+  color: var(--color-text-main);
 }
 
 .form-group input,
 .form-group textarea,
 .form-group select {
-  border: 1px solid #cbd5e0;
-  background: #f8fafc;
+  border: 1px solid #d1d5db;
+  background: white;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    outline: none;
 }
 
 .modal-actions button[type="submit"] {
-  background: #2a5298; /* Use primary color for main action */
+  background: var(--color-primary); 
+  color: white;
 }
 
 /* --- Tables --- */
 .table-container {
-  /* Added border for a cleaner look */
-  border: 1px solid #e2e8f0; 
-  border-radius: 8px;
+  border: 1px solid #e5e7eb; 
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  box-shadow: var(--shadow-sm);
+}
+
+.table-container table {
+    min-width: 750px;
 }
 
 .table-container th {
-  background: #e9eff4; /* Light blue header */
-  color: #1e3c72;
-  font-size: 0.85rem;
+  background: var(--color-secondary-bg); /* Use secondary background */
+  color: var(--color-text-main);
+  font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  font-weight: 700;
 }
 
 .table-container td {
   font-size: 0.9rem;
+  border-color: #f3f4f6;
 }
 
-.action-buttons button {
-    padding: 0.4rem 0.6rem;
-    font-size: 0.75rem;
-}
-
-/* Project Info Grid (Same as original but with new background) */
+/* Project Info Grid */
 .info-item span,
 .info-item input,
 .info-item textarea {
-  border: 1px solid #cbd5e0;
-  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  background: var(--color-secondary-bg);
+  border-radius: 8px;
 }
 
-/* Tablet and Desktop */
+/* --- Responsive Adjustments (Keep these for mobile usability) --- */
 @media (min-width: 768px) {
     .section-header {
         text-align: left;
@@ -423,10 +448,8 @@ body {
     }
 }
 
-/* Mobile Adjustments for Header/Actions */
 @media (max-width: 767px) {
     .section-header {
-        /* Force two lines for back button and title on mobile */
         flex-direction: column; 
         align-items: stretch;
     }
@@ -437,6 +460,6 @@ body {
     .section-header .back-btn,
     .section-header .add-btn {
         width: 100%;
-        order: 1; /* Put buttons first */
+        order: 1; 
     }
 }
