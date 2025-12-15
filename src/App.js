@@ -245,7 +245,7 @@ function App() {
       <header className="app-header">
         <div className="header-content">
           <h1>Hindustan Engineers and Contractors</h1>
-          <p>Cloud Connected Project Management</p>
+          <p>Project Management System</p>
         </div>
       </header>
 
